@@ -3,6 +3,7 @@
     class="sql-result-table"
     :columns="columns"
     :data-source="resultData"
+    row-key="__rowKey"
     size="middle"
     :pagination="{ hideOnSinglePage: true, pageSize: 20 }"
   />
@@ -42,8 +43,10 @@ const resultData = computed(() => {
     return [];
   }
   const tempColumns = result.value[0].columns;
-  return result.value[0].values.map((originRow) => {
-    const rowData: Record<string, any> = {};
+  return result.value[0].values.map((originRow, rowIndex) => {
+    const rowData: Record<string, any> = {
+      __rowKey: rowIndex,
+    };
     originRow.forEach((col, index) => {
       rowData[tempColumns[index]] = col;
     });
@@ -52,4 +55,30 @@ const resultData = computed(() => {
 });
 </script>
 
-<style></style>
+<style scoped>
+.sql-result-table {
+  overflow: hidden;
+  border: 1px solid var(--sql-line);
+  border-radius: 16px;
+}
+
+.sql-result-table :deep(.ant-table) {
+  color: var(--sql-ink);
+  background: rgba(255, 250, 240, 0.68);
+}
+
+.sql-result-table :deep(.ant-table-thead > tr > th) {
+  border-bottom: 1px solid var(--sql-line);
+  color: var(--sql-green);
+  background: rgba(14, 111, 89, 0.08);
+  font-weight: 900;
+}
+
+.sql-result-table :deep(.ant-table-tbody > tr > td) {
+  border-bottom: 1px solid var(--sql-line);
+}
+
+.sql-result-table :deep(.ant-table-tbody > tr:hover > td) {
+  background: rgba(246, 212, 145, 0.12);
+}
+</style>

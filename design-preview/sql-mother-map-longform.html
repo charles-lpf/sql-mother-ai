@@ -1,0 +1,1862 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL 智练场｜闯关地图静态设计稿</title>
+    <style>
+      :root {
+        --ink: #16231f;
+        --ink-soft: #465a54;
+        --muted: #74837e;
+        --paper: #f7f3e8;
+        --paper-strong: #fffaf0;
+        --surface: rgba(255, 252, 242, 0.88);
+        --surface-solid: #fffaf0;
+        --line: rgba(33, 54, 48, 0.14);
+        --line-strong: rgba(33, 54, 48, 0.24);
+        --terminal: #111b18;
+        --terminal-soft: #182721;
+        --green: #1d8f72;
+        --green-deep: #0f5b49;
+        --mint: #88d8be;
+        --amber: #d58b24;
+        --amber-soft: #f6d491;
+        --blue: #356fa3;
+        --red: #b84d3d;
+        --cream-shadow: 0 20px 70px rgba(34, 38, 31, 0.16);
+        --tight-shadow: 0 10px 30px rgba(34, 38, 31, 0.12);
+        --radius-sm: 8px;
+        --radius-md: 14px;
+        --radius-lg: 22px;
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(rgba(22, 35, 31, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(22, 35, 31, 0.045) 1px, transparent 1px),
+          radial-gradient(circle at 18% 8%, rgba(213, 139, 36, 0.16), transparent 28%),
+          radial-gradient(circle at 92% 18%, rgba(29, 143, 114, 0.13), transparent 30%),
+          var(--paper);
+        background-size: 36px 36px, 36px 36px, auto, auto, auto;
+        font-family:
+          "Avenir Next",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          sans-serif;
+        letter-spacing: 0;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      input,
+      textarea,
+      select {
+        font: inherit;
+      }
+
+      .page-shell {
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        min-height: 72px;
+        padding: 12px max(24px, calc((100vw - var(--max)) / 2));
+        border-bottom: 1px solid rgba(33, 54, 48, 0.12);
+        background: rgba(247, 243, 232, 0.84);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 220px;
+      }
+
+      .brand img {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        box-shadow: 0 12px 22px rgba(213, 139, 36, 0.24);
+      }
+
+      .brand-title {
+        display: grid;
+        gap: 1px;
+      }
+
+      .brand-title strong {
+        font-size: 18px;
+        letter-spacing: 0;
+      }
+
+      .brand-title span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+      }
+
+      .nav a {
+        position: relative;
+        padding: 10px 13px;
+        border-radius: 999px;
+        color: var(--ink-soft);
+        font-size: 14px;
+        transition: color 180ms ease, background 180ms ease;
+      }
+
+      .nav a:hover,
+      .nav a.is-active {
+        color: var(--ink);
+        background: rgba(255, 250, 240, 0.86);
+      }
+
+      .progress-pill {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 250px;
+        padding: 10px 14px;
+        border: 1px solid rgba(29, 143, 114, 0.28);
+        border-radius: 999px;
+        background: rgba(255, 250, 240, 0.72);
+      }
+
+      .progress-ring {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: conic-gradient(var(--green) 0 42%, rgba(29, 143, 114, 0.18) 42% 100%);
+      }
+
+      .progress-ring::after {
+        content: "42";
+        position: absolute;
+        inset: 5px;
+        display: grid;
+        place-items: center;
+        border-radius: inherit;
+        color: var(--green-deep);
+        background: var(--paper-strong);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .progress-copy {
+        display: grid;
+        gap: 2px;
+        line-height: 1.2;
+      }
+
+      .progress-copy strong {
+        font-size: 13px;
+      }
+
+      .progress-copy span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .section {
+        position: relative;
+        padding: 84px 24px;
+      }
+
+      .section > .inner {
+        width: min(var(--max), 100%);
+        margin: 0 auto;
+      }
+
+      .hero {
+        min-height: calc(100vh - 72px);
+        display: grid;
+        align-items: center;
+        padding-top: 44px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+        gap: 44px;
+        align-items: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        color: var(--green-deep);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 34px;
+        height: 2px;
+        border-radius: 999px;
+        background: var(--green);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1,
+      h2,
+      .display-title {
+        font-family:
+          "Songti SC",
+          "STSong",
+          "Noto Serif CJK SC",
+          serif;
+        font-weight: 800;
+      }
+
+      h1 {
+        max-width: 720px;
+        margin-bottom: 20px;
+        font-size: clamp(48px, 7vw, 92px);
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      .hero-copy {
+        max-width: 620px;
+        color: var(--ink-soft);
+        font-size: 18px;
+        line-height: 1.8;
+      }
+
+      .hero-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 30px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        cursor: pointer;
+        color: var(--ink);
+        background: var(--surface-solid);
+        box-shadow: 0 8px 18px rgba(33, 54, 48, 0.08);
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 26px rgba(33, 54, 48, 0.14);
+      }
+
+      .btn-primary {
+        color: #fffaf0;
+        background: var(--green-deep);
+      }
+
+      .btn-amber {
+        color: #241d10;
+        background: var(--amber-soft);
+      }
+
+      .btn-small {
+        min-height: 32px;
+        padding: 0 12px;
+        font-size: 13px;
+      }
+
+      .icon-btn {
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 999px;
+      }
+
+      .map-board {
+        position: relative;
+        min-height: 540px;
+        padding: 28px;
+        border: 1px solid rgba(33, 54, 48, 0.14);
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(255, 250, 240, 0.92), rgba(238, 231, 209, 0.78)),
+          repeating-linear-gradient(120deg, transparent 0 24px, rgba(22, 35, 31, 0.04) 24px 25px);
+        box-shadow: var(--cream-shadow);
+        overflow: hidden;
+      }
+
+      .map-board::before {
+        content: "";
+        position: absolute;
+        inset: 34px 44px;
+        border: 2px dashed rgba(29, 143, 114, 0.36);
+        border-radius: 42% 58% 48% 52%;
+        transform: rotate(-10deg);
+      }
+
+      .map-board::after {
+        content: "";
+        position: absolute;
+        width: 380px;
+        height: 380px;
+        right: -160px;
+        bottom: -130px;
+        border: 1px solid rgba(53, 111, 163, 0.22);
+        border-radius: 46% 54% 52% 48%;
+        transform: rotate(16deg);
+      }
+
+      .route-card {
+        position: absolute;
+        display: grid;
+        gap: 8px;
+        width: 172px;
+        padding: 14px;
+        border: 1px solid rgba(22, 35, 31, 0.12);
+        border-radius: 16px;
+        background: rgba(255, 250, 240, 0.88);
+        box-shadow: var(--tight-shadow);
+      }
+
+      .route-card strong {
+        font-size: 15px;
+      }
+
+      .route-card span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .route-card[data-step="1"] {
+        left: 44px;
+        top: 68px;
+      }
+
+      .route-card[data-step="2"] {
+        right: 54px;
+        top: 112px;
+      }
+
+      .route-card[data-step="3"] {
+        left: 118px;
+        bottom: 96px;
+      }
+
+      .route-card[data-step="4"] {
+        right: 96px;
+        bottom: 64px;
+      }
+
+      .node-mark {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        color: #fffaf0;
+        background: var(--green-deep);
+        font-weight: 900;
+      }
+
+      .terminal-preview {
+        position: absolute;
+        left: 32%;
+        top: 38%;
+        width: 260px;
+        padding: 16px;
+        border: 1px solid rgba(136, 216, 190, 0.22);
+        border-radius: 18px;
+        color: #d7f5e8;
+        background: var(--terminal);
+        box-shadow: 0 28px 60px rgba(17, 27, 24, 0.32);
+      }
+
+      .terminal-dots {
+        display: flex;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+
+      .terminal-dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        background: var(--amber-soft);
+      }
+
+      .terminal-dots i:nth-child(2) {
+        background: var(--mint);
+      }
+
+      .terminal-dots i:nth-child(3) {
+        background: #9fb8d3;
+      }
+
+      .code {
+        margin: 0;
+        font-family:
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          monospace;
+        font-size: 14px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+      }
+
+      .code .comment {
+        color: #6aa982;
+      }
+
+      .code .keyword {
+        color: #8bd8ff;
+      }
+
+      .code .value {
+        color: #f6d491;
+      }
+
+      .section-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 28px;
+        margin-bottom: 28px;
+      }
+
+      .section-heading h2 {
+        margin-bottom: 8px;
+        font-size: clamp(32px, 4.4vw, 56px);
+        line-height: 1.05;
+      }
+
+      .section-heading p {
+        max-width: 620px;
+        margin-bottom: 0;
+        color: var(--ink-soft);
+        line-height: 1.8;
+      }
+
+      .label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid rgba(29, 143, 114, 0.22);
+        border-radius: 999px;
+        color: var(--green-deep);
+        background: rgba(255, 250, 240, 0.62);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .learn-grid {
+        display: grid;
+        grid-template-columns: minmax(340px, 0.86fr) minmax(460px, 1.14fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .scroll-panel,
+      .tool-panel,
+      .result-panel,
+      .sandbox-panel,
+      .quiz-panel,
+      .mission-panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--tight-shadow);
+      }
+
+      .scroll-panel {
+        max-height: 720px;
+        overflow: hidden;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .panel-kicker {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .panel-head h3 {
+        margin: 3px 0 0;
+        font-size: 20px;
+      }
+
+      .checkpoint {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--green-deep);
+        background: rgba(29, 143, 114, 0.1);
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .lesson-body {
+        max-height: 640px;
+        overflow: auto;
+        padding: 24px 28px 34px;
+      }
+
+      .lesson-body h4 {
+        margin: 28px 0 10px;
+        font-size: 20px;
+      }
+
+      .lesson-body p {
+        color: var(--ink-soft);
+        font-size: 16px;
+        line-height: 1.9;
+      }
+
+      .inline-code {
+        padding: 2px 7px;
+        border-radius: 7px;
+        color: var(--green-deep);
+        background: rgba(29, 143, 114, 0.1);
+        font-family:
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          monospace;
+      }
+
+      .mini-table {
+        width: 100%;
+        margin: 16px 0;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
+        background: rgba(255, 250, 240, 0.78);
+      }
+
+      .mini-table th,
+      .mini-table td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 14px;
+      }
+
+      .mini-table th {
+        color: var(--green-deep);
+        background: rgba(29, 143, 114, 0.08);
+      }
+
+      .workspace {
+        display: grid;
+        gap: 16px;
+      }
+
+      .tool-panel {
+        overflow: hidden;
+      }
+
+      .terminal-editor {
+        padding: 0;
+        background: var(--terminal);
+      }
+
+      .editor-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        color: #d7f5e8;
+        background: var(--terminal-soft);
+      }
+
+      .editor-toolbar .path {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #b9d9cf;
+        font-size: 13px;
+      }
+
+      .editor-area {
+        min-height: 260px;
+        padding: 20px;
+        color: #d7f5e8;
+      }
+
+      .line-numbers {
+        display: grid;
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .line-numbers ol {
+        margin: 0;
+        padding: 0;
+        color: rgba(215, 245, 232, 0.46);
+        list-style: none;
+        line-height: 1.8;
+        text-align: right;
+      }
+
+      .editor-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px;
+        border-top: 1px solid rgba(255, 250, 240, 0.08);
+        background: rgba(17, 27, 24, 0.96);
+      }
+
+      .run-state {
+        color: #b9d9cf;
+        font-size: 13px;
+      }
+
+      .result-panel {
+        overflow: hidden;
+      }
+
+      .result-panel.is-success {
+        border-color: rgba(29, 143, 114, 0.42);
+      }
+
+      .result-body {
+        padding: 18px 20px 20px;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .status-copy strong {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      .status-copy span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .result-table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 250, 240, 0.74);
+      }
+
+      .result-table {
+        width: 100%;
+        min-width: 520px;
+        border-collapse: collapse;
+      }
+
+      .result-table th,
+      .result-table td {
+        padding: 13px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 14px;
+      }
+
+      .result-table th {
+        color: var(--green-deep);
+        background: rgba(29, 143, 114, 0.08);
+        font-weight: 900;
+      }
+
+      .result-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .folds {
+        display: grid;
+        gap: 10px;
+      }
+
+      details {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 250, 240, 0.62);
+        overflow: hidden;
+      }
+
+      summary {
+        cursor: pointer;
+        padding: 14px 16px;
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      details > div {
+        padding: 0 16px 16px;
+        color: var(--ink-soft);
+        line-height: 1.7;
+      }
+
+      .map-section {
+        background: rgba(238, 231, 209, 0.44);
+      }
+
+      .levels-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.22fr) minmax(320px, 0.78fr);
+        gap: 22px;
+      }
+
+      .mission-map {
+        position: relative;
+        min-height: 720px;
+        padding: 28px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background:
+          linear-gradient(90deg, rgba(255, 250, 240, 0.82), rgba(250, 242, 223, 0.78)),
+          repeating-linear-gradient(0deg, transparent 0 38px, rgba(22, 35, 31, 0.04) 38px 39px),
+          repeating-linear-gradient(90deg, transparent 0 38px, rgba(22, 35, 31, 0.04) 38px 39px);
+        box-shadow: var(--tight-shadow);
+        overflow: hidden;
+      }
+
+      .path-line {
+        position: absolute;
+        inset: 78px 64px 98px 64px;
+        border: 3px dashed rgba(29, 143, 114, 0.32);
+        border-radius: 52% 48% 44% 56%;
+        transform: rotate(-4deg);
+      }
+
+      .level-node {
+        position: absolute;
+        width: 186px;
+        padding: 14px;
+        border: 1px solid rgba(22, 35, 31, 0.14);
+        border-radius: 18px;
+        cursor: pointer;
+        background: rgba(255, 250, 240, 0.88);
+        box-shadow: 0 12px 24px rgba(34, 38, 31, 0.1);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .level-node:hover,
+      .level-node.is-selected {
+        transform: translateY(-3px);
+        border-color: rgba(29, 143, 114, 0.45);
+        box-shadow: 0 18px 34px rgba(34, 38, 31, 0.16);
+      }
+
+      .level-node[data-pos="1"] {
+        left: 44px;
+        top: 80px;
+      }
+
+      .level-node[data-pos="2"] {
+        left: 285px;
+        top: 155px;
+      }
+
+      .level-node[data-pos="3"] {
+        right: 82px;
+        top: 96px;
+      }
+
+      .level-node[data-pos="4"] {
+        right: 158px;
+        top: 325px;
+      }
+
+      .level-node[data-pos="5"] {
+        left: 240px;
+        bottom: 145px;
+      }
+
+      .level-node[data-pos="6"] {
+        left: 58px;
+        bottom: 92px;
+      }
+
+      .node-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .node-num {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        color: #fffaf0;
+        background: var(--green-deep);
+        font-weight: 900;
+      }
+
+      .node-state {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .level-node.is-done .node-state {
+        color: var(--green-deep);
+      }
+
+      .level-node strong {
+        display: block;
+        min-height: 40px;
+        line-height: 1.35;
+      }
+
+      .node-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        color: var(--ink-soft);
+        background: rgba(22, 35, 31, 0.06);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .tag-green {
+        color: var(--green-deep);
+        background: rgba(29, 143, 114, 0.12);
+      }
+
+      .tag-amber {
+        color: #845114;
+        background: rgba(213, 139, 36, 0.16);
+      }
+
+      .mission-panel {
+        padding: 22px;
+      }
+
+      .mission-panel h3 {
+        margin-bottom: 12px;
+        font-size: 22px;
+      }
+
+      .mission-panel p {
+        color: var(--ink-soft);
+        line-height: 1.75;
+      }
+
+      .mission-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .mission-card {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(255, 250, 240, 0.7);
+      }
+
+      .mission-card strong {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .difficulty {
+        color: var(--amber);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .quiz-layout,
+      .playground-layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 0.82fr) minmax(460px, 1.18fr);
+        gap: 22px;
+        align-items: stretch;
+      }
+
+      .quiz-panel,
+      .sandbox-panel {
+        padding: 22px;
+      }
+
+      .field-stack {
+        display: grid;
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field label {
+        color: var(--ink-soft);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .fake-select,
+      .fake-input {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 46px;
+        padding: 0 14px;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: rgba(255, 250, 240, 0.76);
+      }
+
+      .quiz-card {
+        display: grid;
+        gap: 16px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 250, 240, 0.8);
+        box-shadow: var(--tight-shadow);
+      }
+
+      .question-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .quiz-progress {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(29, 143, 114, 0.12);
+        overflow: hidden;
+      }
+
+      .quiz-progress span {
+        display: block;
+        width: 64%;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--green);
+      }
+
+      .prompt-box {
+        padding: 18px;
+        border-radius: 18px;
+        color: #d7f5e8;
+        background: var(--terminal);
+      }
+
+      .answer-box {
+        min-height: 130px;
+        padding: 16px;
+        border: 1px solid rgba(29, 143, 114, 0.22);
+        border-radius: 16px;
+        background: rgba(29, 143, 114, 0.08);
+        color: var(--green-deep);
+        font-family:
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          monospace;
+        line-height: 1.75;
+      }
+
+      .feedback {
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(29, 143, 114, 0.1);
+        color: var(--green-deep);
+      }
+
+      .sandbox-panel .terminal-editor {
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: rgba(255, 250, 240, 0.72);
+        font-size: 13px;
+      }
+
+      .history-item code {
+        color: var(--green-deep);
+      }
+
+      .ai-companion {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 60;
+        width: 360px;
+        border: 1px solid rgba(29, 143, 114, 0.22);
+        border-radius: 22px;
+        background: rgba(255, 250, 240, 0.94);
+        box-shadow: 0 18px 50px rgba(34, 38, 31, 0.22);
+        backdrop-filter: blur(16px);
+        overflow: hidden;
+        transition: width 180ms ease, border-radius 180ms ease;
+      }
+
+      .ai-companion.is-collapsed {
+        width: 68px;
+        border-radius: 999px;
+      }
+
+      .ai-companion.is-collapsed .ai-body,
+      .ai-companion.is-collapsed .ai-title,
+      .ai-companion.is-collapsed .ai-subtitle {
+        display: none;
+      }
+
+      .ai-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px;
+        cursor: default;
+      }
+
+      .ai-ident {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .ai-mark {
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        color: #fffaf0;
+        background: var(--green-deep);
+        font-weight: 900;
+      }
+
+      .ai-title {
+        margin-bottom: 2px;
+        font-size: 15px;
+        font-weight: 900;
+      }
+
+      .ai-subtitle {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .ai-body {
+        border-top: 1px solid var(--line);
+        padding: 14px;
+      }
+
+      .ai-message {
+        padding: 12px;
+        border-radius: 15px;
+        background: rgba(29, 143, 114, 0.09);
+        color: var(--ink-soft);
+        font-size: 13px;
+        line-height: 1.7;
+      }
+
+      .ai-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .ai-input {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .ai-input input {
+        min-width: 0;
+        flex: 1;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        padding: 0 12px;
+        color: var(--ink);
+        background: rgba(255, 250, 240, 0.7);
+      }
+
+      .prototype-note {
+        padding: 40px 24px 90px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .fade-up {
+        animation: fadeUp 700ms ease both;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1020px) {
+        .topbar {
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+
+        .brand {
+          min-width: 0;
+        }
+
+        .nav {
+          order: 3;
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        .progress-pill {
+          min-width: 0;
+          margin-left: auto;
+        }
+
+        .hero-grid,
+        .learn-grid,
+        .levels-layout,
+        .quiz-layout,
+        .playground-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .map-board,
+        .mission-map {
+          min-height: 620px;
+        }
+
+        .terminal-preview {
+          left: 28%;
+          top: 34%;
+        }
+
+        .ai-companion {
+          right: 16px;
+          bottom: 16px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        :root {
+          --radius-lg: 18px;
+        }
+
+        .topbar {
+          padding: 10px 14px;
+        }
+
+        .brand-title span,
+        .progress-copy {
+          display: none;
+        }
+
+        .progress-pill {
+          min-width: 52px;
+          padding: 6px;
+          border: 0;
+          background: transparent;
+        }
+
+        .nav a {
+          padding: 9px 11px;
+          white-space: nowrap;
+        }
+
+        .section {
+          padding: 58px 14px;
+        }
+
+        .hero {
+          min-height: auto;
+          padding-top: 52px;
+        }
+
+        h1 {
+          font-size: 46px;
+        }
+
+        .hero-copy {
+          font-size: 16px;
+        }
+
+        .section-heading {
+          display: grid;
+        }
+
+        .map-board,
+        .mission-map {
+          min-height: auto;
+          padding: 18px;
+        }
+
+        .map-board::before,
+        .map-board::after,
+        .path-line {
+          display: none;
+        }
+
+        .route-card,
+        .terminal-preview,
+        .level-node {
+          position: static;
+          width: 100%;
+          margin-bottom: 12px;
+        }
+
+        .terminal-preview {
+          margin-top: 8px;
+        }
+
+        .panel-head,
+        .status-row,
+        .editor-actions,
+        .question-top {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .lesson-body {
+          max-height: none;
+          padding: 20px;
+        }
+
+        .scroll-panel {
+          max-height: none;
+        }
+
+        .ai-companion {
+          left: 14px;
+          right: 14px;
+          bottom: 14px;
+          width: auto;
+        }
+
+        .ai-companion.is-collapsed {
+          left: auto;
+          width: 62px;
+        }
+
+        .prototype-note {
+          padding-bottom: 110px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#hero-shell" aria-label="SQL 智练场">
+          <img src="./sql-mother-logo-mark.svg" alt="SQL 智练场" />
+          <span class="brand-title">
+            <strong>SQL 智练场</strong>
+            <span>数据闯关地图设计稿</span>
+          </span>
+        </a>
+        <nav class="nav" aria-label="设计稿导航">
+          <a href="#learn-preview" class="is-active">学习工作台</a>
+          <a href="#levels-preview">关卡地图</a>
+          <a href="#quiz-preview">测验复盘</a>
+          <a href="#playground-preview">查询沙盒</a>
+        </nav>
+        <div class="progress-pill" aria-label="学习进度">
+          <span class="progress-ring" aria-hidden="true"></span>
+          <span class="progress-copy">
+            <strong>主线进度 12 / 30</strong>
+            <span>当前：基础查询 · 全表查询</span>
+          </span>
+        </div>
+      </header>
+
+      <main>
+        <section id="hero-shell" class="section hero">
+          <div class="inner hero-grid">
+            <div class="fade-up">
+              <div class="eyebrow">SQL Quest Map</div>
+              <h1>把 SQL 学习变成一张可探索的数据地图</h1>
+              <p class="hero-copy">
+                这版设计把教程、编辑器、执行结果和 AI 复习放到同一个学习旅程里。用户不只是做题，
+                而是在一条由表、查询、结果和业务副本组成的路线里逐步掌握 SQL。
+              </p>
+              <div class="hero-actions">
+                <a class="btn btn-primary" href="#learn-preview">查看学习工作台</a>
+                <a class="btn btn-amber" href="#levels-preview">浏览关卡地图</a>
+              </div>
+            </div>
+
+            <div class="map-board fade-up" aria-label="闯关地图概览">
+              <div class="route-card" data-step="1">
+                <span class="node-mark">1</span>
+                <strong>读取第一张表</strong>
+                <span>从 student 数据表理解 SELECT 与全表查询。</span>
+              </div>
+              <div class="route-card" data-step="2">
+                <span class="node-mark">2</span>
+                <strong>筛选字段与条件</strong>
+                <span>在真实结果里看到 where、alias、order 的区别。</span>
+              </div>
+              <div class="route-card" data-step="3">
+                <span class="node-mark">3</span>
+                <strong>进入业务副本</strong>
+                <span>电商、金融、物流、医疗等数据场景逐步解锁。</span>
+              </div>
+              <div class="route-card" data-step="4">
+                <span class="node-mark">4</span>
+                <strong>AI 复盘挑战</strong>
+                <span>用测验和解释把刚学过的知识真正变成能力。</span>
+              </div>
+              <div class="terminal-preview" aria-label="SQL 终端预览">
+                <div class="terminal-dots"><i></i><i></i><i></i></div>
+                <pre class="code"><span class="comment">-- 当前任务</span>
+<span class="keyword">select</span> *
+<span class="keyword">from</span> student
+<span class="keyword">where</span> score &gt; <span class="value">90</span>;</pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="learn-preview" class="section">
+          <div class="inner">
+            <div class="section-heading">
+              <div>
+                <span class="label">Learn Workspace</span>
+                <h2>学习工作台</h2>
+              </div>
+              <p>
+                左侧保留教程阅读的扎实感，右侧变成任务终端。执行结果、提示、建表语句和答案不再像附属折叠项，
+                而是围绕“本关校验”形成清楚的反馈闭环。
+              </p>
+            </div>
+
+            <div class="learn-grid">
+              <article class="scroll-panel">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-kicker">Level 01 · Tutorial</div>
+                    <h3>基础语法 - 查询 - 全表查询</h3>
+                  </div>
+                  <span class="checkpoint">当前任务</span>
+                </div>
+                <div class="lesson-body">
+                  <p>
+                    在 SQL 学习的起点，我们需要了解一些基本概念，包括数据库、数据表、SQL、
+                    <span class="inline-code">select</span> 查询以及全表查询。
+                  </p>
+                  <p>
+                    数据库就像一座大型图书馆，数据表像书架，每一行是一条记录，每一列是记录的属性。
+                    SQL 的目标，是用清晰的语句从这些数据里找到你真正需要的信息。
+                  </p>
+                  <h4>示例数据表 student</h4>
+                  <table class="mini-table">
+                    <thead>
+                      <tr><th>学号</th><th>姓名</th><th>年龄</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>101</td><td>小明</td><td>20</td></tr>
+                      <tr><td>102</td><td>小红</td><td>22</td></tr>
+                      <tr><td>103</td><td>小刚</td><td>21</td></tr>
+                    </tbody>
+                  </table>
+                  <p>
+                    当我们使用 <span class="inline-code">select * from 表名</span> 时，
+                    就是在进行全表查询，它会返回数据表中的所有行，让我们全面了解表中的数据。
+                  </p>
+                  <h4>本关目标</h4>
+                  <p>请编写 SQL 查询语句，从名为 student 的数据表中查询出所有学生的信息。</p>
+                </div>
+              </article>
+
+              <div class="workspace">
+                <section class="tool-panel terminal-editor">
+                  <div class="editor-toolbar">
+                    <div class="path"><span class="terminal-dots"><i></i><i></i><i></i></span> /learn/level1</div>
+                    <span>SQLite · sql.js</span>
+                  </div>
+                  <div class="editor-area">
+                    <div class="line-numbers">
+                      <ol><li>1</li><li>2</li><li>3</li></ol>
+                      <pre class="code"><span class="comment">-- 请在此处输入 SQL</span>
+<span class="keyword">select</span> *
+<span class="keyword">from</span> student;</pre>
+                    </div>
+                  </div>
+                  <div class="editor-actions">
+                    <div class="hero-actions" style="margin: 0">
+                      <button class="btn btn-primary" id="runSqlBtn" type="button">运行校验</button>
+                      <button class="btn btn-small" type="button">格式化</button>
+                      <button class="btn btn-small" type="button">重置</button>
+                    </div>
+                    <span class="run-state" id="runState">等待提交 · 结果会在下方刷新</span>
+                  </div>
+                </section>
+
+                <section class="result-panel is-success" id="resultPanel">
+                  <div class="panel-head">
+                    <div>
+                      <div class="panel-kicker">Execution Result</div>
+                      <h3>执行结果</h3>
+                    </div>
+                    <span class="checkpoint" id="resultBadge">答案一致</span>
+                  </div>
+                  <div class="result-body">
+                    <div class="status-row">
+                      <div class="status-copy">
+                        <strong id="statusTitle">本关 SQL 已通过校验</strong>
+                        <span id="statusDesc">列名、顺序和数据均与参考答案一致。</span>
+                      </div>
+                      <a class="btn btn-amber btn-small" href="#levels-preview">进入下一关</a>
+                    </div>
+                    <div class="result-table-wrap">
+                      <table class="result-table">
+                        <thead>
+                          <tr><th>id</th><th>name</th><th>age</th><th>class_id</th><th>score</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>1</td><td>鸡哥</td><td>25</td><td>1</td><td>2.5</td></tr>
+                          <tr><td>2</td><td>鱼皮</td><td>18</td><td>1</td><td>400</td></tr>
+                          <tr><td>3</td><td>热dog</td><td>40</td><td>2</td><td>600</td></tr>
+                          <tr><td>4</td><td>摸FISH</td><td></td><td>2</td><td>360</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </section>
+
+                <div class="folds">
+                  <details open>
+                    <summary>查看提示</summary>
+                    <div>先确认要查询的表名，再用星号表示全部字段。本关答案不需要 where 条件。</div>
+                  </details>
+                  <details>
+                    <summary>查看建表语句</summary>
+                    <div><pre class="code"><span class="keyword">create table</span> student (id int, name text, age int, class_id int, score real);</pre></div>
+                  </details>
+                  <details>
+                    <summary>查看答案</summary>
+                    <div><pre class="code"><span class="keyword">select</span> * <span class="keyword">from</span> student;</pre></div>
+                  </details>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="levels-preview" class="section map-section">
+          <div class="inner">
+            <div class="section-heading">
+              <div>
+                <span class="label">Quest Map</span>
+                <h2>关卡地图</h2>
+              </div>
+              <p>
+                主线关卡从列表升级为路径节点，自定义关卡以业务副本呈现。用户能看到自己正在地图上的位置，
+                也能感知后面会进入哪些真实数据场景。
+              </p>
+            </div>
+
+            <div class="levels-layout">
+              <section class="mission-map" aria-label="主线关卡路径">
+                <div class="path-line"></div>
+                <button class="level-node is-done is-selected" data-pos="1" data-title="基础语法 - 查询 - 全表查询" type="button">
+                  <span class="node-top"><span class="node-num">1</span><span class="node-state">已通关</span></span>
+                  <strong>基础语法 - 查询 - 全表查询</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">基础</span></span>
+                </button>
+                <button class="level-node is-done" data-pos="2" data-title="基础语法 - 查询 - 选择查询" type="button">
+                  <span class="node-top"><span class="node-num">2</span><span class="node-state">已通关</span></span>
+                  <strong>基础语法 - 查询 - 选择查询</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">字段</span></span>
+                </button>
+                <button class="level-node" data-pos="3" data-title="基础语法 - 查询 - 别名" type="button">
+                  <span class="node-top"><span class="node-num">3</span><span class="node-state">当前</span></span>
+                  <strong>基础语法 - 查询 - 别名</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">表达</span></span>
+                </button>
+                <button class="level-node" data-pos="4" data-title="条件查询 - where" type="button">
+                  <span class="node-top"><span class="node-num">5</span><span class="node-state">待解锁</span></span>
+                  <strong>基础语法 - 条件查询 - where</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">筛选</span></span>
+                </button>
+                <button class="level-node" data-pos="5" data-title="聚合查询 - group by" type="button">
+                  <span class="node-top"><span class="node-num">14</span><span class="node-state">待解锁</span></span>
+                  <strong>聚合查询 - group by</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">统计</span></span>
+                </button>
+                <button class="level-node" data-pos="6" data-title="多表查询 - join" type="button">
+                  <span class="node-top"><span class="node-num">22</span><span class="node-state">待解锁</span></span>
+                  <strong>多表查询 - join</strong>
+                  <span class="node-tags"><span class="tag tag-green">主线</span><span class="tag">关联</span></span>
+                </button>
+              </section>
+
+              <aside class="mission-panel">
+                <div class="panel-kicker">Selected Mission</div>
+                <h3 id="selectedLevelTitle">基础语法 - 查询 - 全表查询</h3>
+                <p>
+                  地图节点可以成为关卡页的核心交互：选中节点后，右侧展示关卡摘要、知识点和开始挑战入口。
+                </p>
+                <div class="hero-actions" style="margin-top: 18px">
+                  <a class="btn btn-primary" href="#learn-preview">进入挑战</a>
+                  <button class="btn btn-small" type="button">收藏路线</button>
+                </div>
+
+                <div class="mission-list" aria-label="自定义关卡">
+                  <div class="mission-card">
+                    <strong>金牛投资 <span class="difficulty">中等</span></strong>
+                    <span>交易流水、收益统计、风险筛选。</span>
+                  </div>
+                  <div class="mission-card">
+                    <strong>快递江湖 <span class="difficulty">中等</span></strong>
+                    <span>配送时效、异常订单、城市排行榜。</span>
+                  </div>
+                  <div class="mission-card">
+                    <strong>白衣天使 <span class="difficulty">进阶</span></strong>
+                    <span>挂号记录、科室容量、患者等待时间。</span>
+                  </div>
+                  <div class="mission-card">
+                    <strong>码上淘宝 <span class="difficulty">进阶</span></strong>
+                    <span>用户行为、订单转化、商品表现。</span>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="quiz-preview" class="section">
+          <div class="inner">
+            <div class="section-heading">
+              <div>
+                <span class="label">Review Challenge</span>
+                <h2>测验复盘舱</h2>
+              </div>
+              <p>
+                测验页从孤立表单变成复盘挑战：左侧设置测验范围，右侧提前展示生成进度、当前题、反馈方式，
+                让 AI 测验更像学习路径的一部分。
+              </p>
+            </div>
+
+            <div class="quiz-layout">
+              <section class="quiz-panel">
+                <div class="panel-kicker">Quiz Setup</div>
+                <h3>生成一组复习挑战</h3>
+                <p style="color: var(--ink-soft); line-height: 1.75">
+                  首题生成完成后即可开始答题，后续题目在后台逐题生成，减少等待感。
+                </p>
+                <div class="field-stack">
+                  <div class="field">
+                    <label>测验范围</label>
+                    <div class="fake-select">当前关卡：基础语法 - 查询 - 全表查询 <span>⌄</span></div>
+                  </div>
+                  <div class="field">
+                    <label>题目数量</label>
+                    <div class="fake-select">5 题 <span>⌄</span></div>
+                  </div>
+                  <button class="btn btn-primary" type="button" style="width: 100%">开始生成测验</button>
+                </div>
+              </section>
+
+              <section class="quiz-card">
+                <div class="question-top">
+                  <div>
+                    <div class="panel-kicker">Question 3 / 5</div>
+                    <h3 style="margin: 4px 0 0">筛选高分学生</h3>
+                  </div>
+                  <span class="checkpoint">后台生成中 64%</span>
+                </div>
+                <div class="quiz-progress"><span></span></div>
+                <div class="prompt-box">
+                  <pre class="code"><span class="comment">-- 题目</span>
+请查询 student 表中 score 大于 90 的学生姓名和分数。</pre>
+                </div>
+                <div class="answer-box"><span class="keyword">select</span> name, score<br /><span class="keyword">from</span> student<br /><span class="keyword">where</span> score &gt; 90;</div>
+                <div class="feedback">
+                  <strong>通过</strong>
+                  <span>你的查询条件正确，字段顺序也与参考答案一致。</span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section id="playground-preview" class="section map-section">
+          <div class="inner">
+            <div class="section-heading">
+              <div>
+                <span class="label">SQL Sandbox</span>
+                <h2>自由查询沙盒</h2>
+              </div>
+              <p>
+                练习场保留自由输入的轻松感，但强化数据库控制台的专业气质：编辑器、结果表和历史记录彼此呼应。
+              </p>
+            </div>
+
+            <div class="playground-layout">
+              <section class="sandbox-panel">
+                <div class="panel-kicker">Playground</div>
+                <h3>任意 SQL 语句，立即看到结果</h3>
+                <div class="terminal-editor" style="margin-top: 16px">
+                  <div class="editor-toolbar">
+                    <div class="path">sandbox/session-24</div>
+                    <span>auto saved</span>
+                  </div>
+                  <div class="editor-area" style="min-height: 210px">
+                    <pre class="code"><span class="comment">-- 自由练习</span>
+<span class="keyword">select</span> class_id, count(*) <span class="keyword">as</span> total
+<span class="keyword">from</span> student
+<span class="keyword">group by</span> class_id;</pre>
+                  </div>
+                  <div class="editor-actions">
+                    <button class="btn btn-primary" type="button">运行</button>
+                    <span class="run-state">3 条历史记录 · 最近 12 秒前</span>
+                  </div>
+                </div>
+                <div class="history-list">
+                  <div class="history-item"><code>select * from student</code><span>成功</span></div>
+                  <div class="history-item"><code>select name, score from student</code><span>成功</span></div>
+                  <div class="history-item"><code>select class_id, count(*)...</code><span>当前</span></div>
+                </div>
+              </section>
+
+              <section class="result-panel">
+                <div class="panel-head">
+                  <div>
+                    <div class="panel-kicker">Query Output</div>
+                    <h3>执行结果</h3>
+                  </div>
+                  <span class="checkpoint">3 rows</span>
+                </div>
+                <div class="result-body">
+                  <div class="result-table-wrap">
+                    <table class="result-table">
+                      <thead>
+                        <tr><th>class_id</th><th>total</th><th>avg_score</th><th>观察</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>1</td><td>2</td><td>201.25</td><td>样本偏少</td></tr>
+                        <tr><td>2</td><td>2</td><td>480</td><td>表现稳定</td></tr>
+                        <tr><td>3</td><td>2</td><td>310</td><td>需要复查</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <p class="prototype-note">
+          静态设计稿：仅用于确认视觉、布局和交互方向；不接入真实 SQL 执行、AI 服务或项目路由。
+        </p>
+      </main>
+
+      <aside class="ai-companion is-collapsed" id="aiCompanion" aria-label="AI 学习搭子">
+        <div class="ai-head">
+          <div class="ai-ident">
+            <span class="ai-mark">AI</span>
+            <span>
+              <div class="ai-title">SQL 学习搭子</div>
+              <div class="ai-subtitle">当前关卡 · 全表查询</div>
+            </span>
+          </div>
+          <button class="btn icon-btn" id="toggleAi" type="button" aria-label="收起或展开 AI 助手">+</button>
+        </div>
+        <div class="ai-body">
+          <div class="ai-message" id="aiMessage">
+            你已经完成当前 SQL 的执行校验。下一步可以让我解释结果表，或者生成一道同类复习题。
+          </div>
+          <div class="ai-actions">
+            <button class="btn btn-small" data-ai-reply="先看表名、字段和目标，再决定是否需要 where 条件。本关只需要查询全部记录。" type="button">解释思路</button>
+            <button class="btn btn-small" data-ai-reply="同类练习：查询 student 表中所有学生的 name 和 age 字段。" type="button">来一题</button>
+          </div>
+          <div class="ai-input">
+            <input aria-label="输入问题" placeholder="问一个 SQL 问题" />
+            <button class="btn btn-primary btn-small" data-ai-reply="收到。真实产品中这里会携带当前关卡上下文，让回答更贴合你的学习进度。" type="button">发送</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      const navLinks = Array.from(document.querySelectorAll(".nav a"));
+      const sections = navLinks
+        .map((link) => document.querySelector(link.getAttribute("href")))
+        .filter(Boolean);
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            navLinks.forEach((link) => {
+              link.classList.toggle(
+                "is-active",
+                link.getAttribute("href") === `#${entry.target.id}`
+              );
+            });
+          });
+        },
+        { rootMargin: "-42% 0px -48% 0px", threshold: 0.01 }
+      );
+      sections.forEach((section) => observer.observe(section));
+
+      const runBtn = document.getElementById("runSqlBtn");
+      const runState = document.getElementById("runState");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusDesc = document.getElementById("statusDesc");
+      const resultBadge = document.getElementById("resultBadge");
+
+      runBtn.addEventListener("click", () => {
+        runBtn.textContent = "校验中...";
+        runState.textContent = "正在初始化内存数据库并执行 SQL";
+        statusTitle.textContent = "正在对比结果集";
+        statusDesc.textContent = "检查列名、顺序和返回数据。";
+        resultBadge.textContent = "校验中";
+
+        window.setTimeout(() => {
+          runBtn.textContent = "再次运行";
+          runState.textContent = "执行完成 · 4 行结果 · 用时 32ms";
+          statusTitle.textContent = "本关 SQL 已通过校验";
+          statusDesc.textContent = "列名、顺序和数据均与参考答案一致。";
+          resultBadge.textContent = "答案一致";
+        }, 760);
+      });
+
+      const levelNodes = Array.from(document.querySelectorAll(".level-node"));
+      const selectedLevelTitle = document.getElementById("selectedLevelTitle");
+      levelNodes.forEach((node) => {
+        node.addEventListener("click", () => {
+          levelNodes.forEach((item) => item.classList.remove("is-selected"));
+          node.classList.add("is-selected");
+          selectedLevelTitle.textContent = node.dataset.title;
+        });
+      });
+
+      const ai = document.getElementById("aiCompanion");
+      const toggleAi = document.getElementById("toggleAi");
+      toggleAi.addEventListener("click", () => {
+        ai.classList.toggle("is-collapsed");
+        toggleAi.textContent = ai.classList.contains("is-collapsed") ? "+" : "−";
+      });
+
+      const aiMessage = document.getElementById("aiMessage");
+      document.querySelectorAll("[data-ai-reply]").forEach((button) => {
+        button.addEventListener("click", () => {
+          ai.classList.remove("is-collapsed");
+          toggleAi.textContent = "−";
+          aiMessage.textContent = button.dataset.aiReply;
+        });
+      });
+    </script>
+  </body>
+</html>

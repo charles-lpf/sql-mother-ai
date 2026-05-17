@@ -1,7 +1,4 @@
 import { RouteRecordRaw } from "vue-router";
-import IndexPage from "../pages/IndexPage.vue";
-import LevelsPage from "../pages/LevelsPage.vue";
-import PlaygroundPage from "../pages/PlaygroundPage.vue";
 
 /**
  * 路由列表
@@ -9,21 +6,25 @@ import PlaygroundPage from "../pages/PlaygroundPage.vue";
 export default [
   {
     path: "/",
-    component: IndexPage,
+    component: () => import("../pages/IndexPage.vue"),
     redirect: "/learn",
     props: true,
   },
   {
     path: "/learn/:levelKey?",
-    component: IndexPage,
+    component: () => import("../pages/IndexPage.vue"),
     props: true,
   },
   {
     path: "/levels",
-    component: LevelsPage,
+    component: () => import("../pages/LevelsPage.vue"),
+  },
+  {
+    path: "/quiz",
+    component: () => import("../pages/QuizPage.vue"),
   },
   {
     path: "/playground",
-    component: PlaygroundPage,
+    component: () => import("../pages/PlaygroundPage.vue"),
   },
 ] as RouteRecordRaw[];

@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
+    "dev:client": "vite",
+    "dev:quiz-server": "node server/quiz-sse-server.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -14,6 +16,7 @@
     "ant-design-vue": "^3.2.11",
     "github-markdown-css": "^5.2.0",
     "lodash": "^4.17.21",
+    "markdown-it": "^14.1.1",
     "monaco-editor": "^0.34.0",
     "pinia": "^2.0.19",
     "pinia-plugin-persistedstate": "^2.1.1",
@@ -23,6 +26,7 @@
     "vue-router": "4"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@types/sql.js": "^1.4.3",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",

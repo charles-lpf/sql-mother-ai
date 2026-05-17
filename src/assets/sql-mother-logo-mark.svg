@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">SQL 智练场标识</title>
+  <desc id="desc">深绿色圆角底上的数据表、查询路径和终端光标组合标识</desc>
+  <rect x="8" y="8" width="112" height="112" rx="30" fill="#10261F"/>
+  <rect x="13" y="13" width="102" height="102" rx="26" stroke="#F6D491" stroke-opacity=".24" stroke-width="2"/>
+  <path d="M30 39.5C30 34.2533 34.2533 30 39.5 30H82.5C87.7467 30 92 34.2533 92 39.5V79C92 84.5228 87.5228 89 82 89H39.5C34.2533 89 30 84.7467 30 79.5V39.5Z" fill="#FFF4DF"/>
+  <path d="M30 45H92" stroke="#10261F" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M30 61H92" stroke="#10261F" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M30 77H92" stroke="#10261F" stroke-opacity=".16" stroke-width="2"/>
+  <path d="M47 30V89" stroke="#10261F" stroke-opacity=".14" stroke-width="2"/>
+  <path d="M70 30V89" stroke="#10261F" stroke-opacity=".14" stroke-width="2"/>
+  <circle cx="39" cy="38" r="4" fill="#0E6F59"/>
+  <circle cx="58" cy="54" r="4" fill="#0E6F59"/>
+  <circle cx="82" cy="70" r="4" fill="#0E6F59"/>
+  <path d="M39 38C49.7949 39.8152 49.2066 52.1791 58 54C68.2343 56.1193 70.8036 68.5574 82 70" stroke="#D58B24" stroke-width="4" stroke-linecap="round"/>
+  <path d="M43 96H84" stroke="#88D8BE" stroke-width="6" stroke-linecap="round"/>
+  <path d="M86 96H96" stroke="#F6D491" stroke-width="6" stroke-linecap="round"/>
+  <path d="M51 104H72" stroke="#88D8BE" stroke-opacity=".55" stroke-width="4" stroke-linecap="round"/>
+  <path d="M83 104H92" stroke="#F6D491" stroke-opacity=".65" stroke-width="4" stroke-linecap="round"/>
+  <path d="M99.5 31.5L105 37L99.5 42.5" stroke="#F6D491" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

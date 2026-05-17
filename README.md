@@ -1,8 +1,18 @@
-# SQL 之母 - 闯关式 SQL 自学网
+# SQL Mother AI - AI 辅助的闯关式 SQL 自学网
 
-> 纯前端实现的闯关式 SQL 自学网
+> 基于 SQL 之母开发，加入 AI 辅助学习能力的闯关式 SQL 自学网
 >
-> By [程序员鱼皮](https://docs.qq.com/doc/DUFFRVWladXVjeUxW) ，一人全役
+> 原项目：[liyupi/sql-mother](https://github.com/liyupi/sql-mother)
+
+
+
+## 项目说明
+
+本项目基于 [liyupi/sql-mother](https://github.com/liyupi/sql-mother) 进行二次开发，感谢原作者 [程序员鱼皮](https://github.com/liyupi) 开源的 SQL 学习项目。
+
+在原项目闯关式 SQL 自学体验的基础上，`sql-mother-ai` 增加了 AI 辅助学习能力，帮助用户在刷题过程中理解题目、分析 SQL 思路、获得练习反馈，并通过 AI 测验进一步巩固 SQL 知识。
+
+原项目介绍如下：
 
 
 
@@ -334,4 +344,3 @@ export const runSQL = (db: Database, sql: string) => {
 [亚洲最佳CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/zh?from=github)
 
 ![image](https://github.com/user-attachments/assets/eeb52237-4520-4a97-8f3d-6cb901e2106a)
-

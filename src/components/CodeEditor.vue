@@ -21,40 +21,69 @@ import IStandaloneCodeEditor = monaco.editor.IStandaloneCodeEditor;
 interface Props {
   initValue?: string;
   readOnly?: boolean;
+  submitOnEnter?: boolean;
   editorStyle?: CSSProperties;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   initValue: "",
   readOnly: false,
+  submitOnEnter: false,
   editorStyle: undefined,
 });
 const inputEditor = ref<IStandaloneCodeEditor>();
 const editorRef = ref<HTMLElement>();
+const isApplyingValue = ref(false);
+const emit = defineEmits<{
+  (e: "change", value: string): void;
+  (e: "submit"): void;
+}>();
 
 onMounted(async () => {
   // 初始化代码编辑器
   if (editorRef.value) {
     inputEditor.value = monaco.editor.create(editorRef.value, {
-      value: props.initValue,
+      value: String(props.initValue || ""),
       language: "sql",
       theme: "vs-dark",
       readOnly: props.readOnly,
       formatOnPaste: true,
       automaticLayout: true,
       fontSize: 15,
+      wordBasedSuggestions: false,
+      suggestOnTriggerCharacters: false,
+      quickSuggestions: false,
+      acceptSuggestionOnEnter: "off",
       minimap: {
         enabled: false,
       },
     });
+    inputEditor.value.onDidChangeModelContent(() => {
+      if (inputEditor.value && !props.readOnly && !isApplyingValue.value) {
+        emit("change", toRaw(inputEditor.value).getValue());
+      }
+    });
+    if (props.submitOnEnter && !props.readOnly) {
+      inputEditor.value.addCommand(monaco.KeyCode.Enter, () => {
+        emit("submit");
+      });
+    }
   }
 });
 
 watch(
   () => props.initValue,
-  () => {
+  (newValue) => {
     if (editorRef.value && inputEditor.value) {
-      toRaw(inputEditor.value).setValue(props.initValue);
+      const editor = toRaw(inputEditor.value);
+      const nextValue = String(newValue || "");
+      if (editor.getValue() !== nextValue) {
+        isApplyingValue.value = true;
+        editor.setValue(nextValue);
+        window.setTimeout(() => {
+          isApplyingValue.value = false;
+        }, 0);
+      }
     }
   }
 );
@@ -66,4 +95,10 @@ onUnmounted(() => {
 });
 </script>
 
-<style></style>
+<style scoped>
+.code-editor {
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--sql-terminal);
+}
+</style>

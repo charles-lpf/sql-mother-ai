@@ -1,20 +1,31 @@
 <template>
-  <div id="indexPage">
-    <a-row :gutter="[16, 16]">
-      <a-col :lg="11" :xs="24">
+  <div id="indexPage" class="sql-page-shell learn-page">
+    <section class="learn-heading">
+      <div>
+        <span class="sql-section-label">Learn Workspace</span>
+        <h1 class="sql-display-title">学习工作台</h1>
+      </div>
+      <p class="sql-section-copy">
+        当前路线：{{ level.type === "main" ? "主线必修" : "业务副本" }} ·
+        第 {{ levelNum + 1 }} / {{ totalLevels }} 关。阅读教程、运行 SQL、查看结果在同一张任务桌面里闭环。
+      </p>
+    </section>
+
+    <section class="learn-workspace">
+      <div class="reading-column">
         <question-board :level="level" :result-status="resultStatus" />
-      </a-col>
-      <a-col :lg="13" :xs="24">
+      </div>
+      <div class="console-column">
         <sql-editor
           :level="level"
-          :editor-style="{ height: '280px' }"
+          :editor-style="{ height: '320px' }"
           :result-status="resultStatus"
           :on-submit="onSubmit"
         />
-        <a-collapse v-model:active-key="activeKeys" style="margin-top: 16px">
+        <a-collapse v-model:active-key="activeKeys" class="quest-folds">
           <a-collapse-panel
             key="result"
-            header="查看执行结果"
+            header="执行结果"
             class="result-collapse-panel"
           >
             <sql-result
@@ -23,55 +34,65 @@
               :result-status="resultStatus"
               :answer-result="answerResult"
               :error-msg="errorMsgRef"
-              style="margin-top: 16px"
             />
           </a-collapse-panel>
-          <a-collapse-panel v-if="level.hint" key="hint" header="查看提示">
+          <a-collapse-panel v-if="level.hint" key="hint" header="提示">
             <p>{{ level.hint }}</p>
           </a-collapse-panel>
-          <a-collapse-panel key="ddl" header="查看建表语句">
+          <a-collapse-panel key="ddl" header="建表语句">
             <code-editor
               :init-value="level.initSQL"
-              :editor-style="{ minHeight: '400px' }"
+              :editor-style="{ minHeight: '320px' }"
               read-only
             />
           </a-collapse-panel>
-          <a-collapse-panel key="answer" header="查看答案">
+          <a-collapse-panel key="answer" header="答案">
             <code-editor
               :init-value="level.answer"
-              :editor-style="{ minHeight: '400px' }"
+              :editor-style="{ minHeight: '240px' }"
               read-only
             />
           </a-collapse-panel>
         </a-collapse>
-      </a-col>
-    </a-row>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import hljs from 'highlight.js';
-import { format } from "sql-formatter";
 import SqlEditor from "../components/SqlEditor.vue";
 import QuestionBoard from "../components/QuestionBoard.vue";
 import SqlResult from "../components/SqlResult.vue";
 import { computed, ref, watch } from "vue";
 import { QueryExecResult } from "sql.js";
-import { allLevels, getLevelByKey } from "../levels";
-import { checkResult } from "../core/result";
+import { allLevels, getCurrentLevelNum, getLevelByKey } from "../levels";
+import { checkResult, RESULT_STATUS_ENUM } from "../core/result";
 import CodeEditor from "../components/CodeEditor.vue";
+import { useGlobalStore } from "../core/globalStore";
+import { storeToRefs } from "pinia";
 
 interface IndexPageProps {
   levelKey?: string;
 }
 
 const props = defineProps<IndexPageProps>();
+const globalStore = useGlobalStore();
+const { currentLevelKey } = storeToRefs(globalStore);
+
+// 如果有传入levelKey就使用传入的，否则使用保存的进度
 const level = computed(() => {
   if (props.levelKey) {
     return getLevelByKey(props.levelKey);
   }
-  return allLevels[0];
+  return getLevelByKey(currentLevelKey.value);
 });
+const levelNum = computed(() => getCurrentLevelNum(level.value));
+const totalLevels = allLevels.length;
+
+// 监听关卡变化时，保存进度
+watch(level, (newLevel) => {
+  globalStore.setCurrentLevel(newLevel.key);
+}, { immediate: true });
 
 const result = ref<QueryExecResult[]>([]);
 const answerResult = ref<QueryExecResult[]>([]);
@@ -85,6 +106,10 @@ const activeKeys = ref([...defaultActiveKeys]);
  */
 watch([level], () => {
   activeKeys.value = [...defaultActiveKeys];
+  resultStatus.value = -1;
+  result.value = [];
+  answerResult.value = [];
+  errorMsgRef.value = undefined;
 });
 
 /**
@@ -104,15 +129,61 @@ const onSubmit = (
   answerResult.value = answerRes;
   errorMsgRef.value = errorMsg;
   resultStatus.value = checkResult(res, answerRes);
-};
-
-const highlightCode = (code: string) => {
-  return hljs.highlightAuto(code).value;
+  if (resultStatus.value === RESULT_STATUS_ENUM.SUCCEED) {
+    globalStore.markLevelCompleted(level.value.key);
+  }
 };
 
 </script>
 
 <style>
+#indexPage.learn-page {
+  padding-top: 18px;
+}
+
+.learn-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: 48px;
+  align-items: end;
+  margin-bottom: 30px;
+}
+
+.learn-workspace {
+  display: grid;
+  grid-template-columns: minmax(400px, 0.9fr) minmax(600px, 1.1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.reading-column,
+.console-column {
+  min-width: 0;
+}
+
+.console-column {
+  display: grid;
+  gap: 16px;
+}
+
+.quest-folds {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.quest-folds > .ant-collapse-item {
+  margin-bottom: 10px;
+  overflow: hidden;
+  border: 1px solid var(--sql-line) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 250, 240, 0.72);
+}
+
+.quest-folds .ant-collapse-content {
+  border-top-color: var(--sql-line) !important;
+  background: rgba(255, 250, 240, 0.58) !important;
+}
+
 .result-collapse-panel .ant-collapse-content-box {
   padding: 0 !important;
 }

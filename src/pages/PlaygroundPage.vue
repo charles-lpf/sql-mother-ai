@@ -1,14 +1,23 @@
 <template>
-  <div id="playgroundPage">
-    <h2>请输入任意 SQL 语句，尽情玩耍~</h2>
-    <a-row :gutter="[16, 16]">
-      <a-col :md="12" :xs="24">
+  <div id="playgroundPage" class="sql-page-shell playground-page">
+    <section class="playground-heading">
+      <div>
+        <span class="sql-section-label">SQL Sandbox</span>
+        <h1 class="sql-display-title">自由查询沙盒</h1>
+      </div>
+      <p class="sql-section-copy">
+        离开关卡限制，像使用轻量数据库控制台一样自由实验 SQL。编辑器、结果表和执行历史会留在同一个沙盒里。
+      </p>
+    </section>
+
+    <section class="playground-layout">
+      <div class="sandbox-column">
         <sql-editor
           :level="allLevels[0]"
           :editor-style="{ height: 480 + 'px' }"
           :on-submit="onSubmit"
         />
-        <a-card title="执行历史" style="margin-top: 16px">
+        <a-card class="history-card" title="执行历史">
           <a-collapse v-if="sqlHistoryList.length > 0">
             <a-collapse-panel
               v-for="(data, index) in sqlHistoryList"
@@ -20,11 +29,11 @@
           </a-collapse>
           <div v-else>暂无执行历史</div>
         </a-card>
-      </a-col>
-      <a-col :md="12" :xs="24">
+      </div>
+      <div class="result-column">
         <sql-result :result="result" />
-      </a-col>
-    </a-row>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -60,4 +69,35 @@ const onSubmit = (
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.playground-page {
+  padding-top: 18px;
+}
+
+.playground-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: 48px;
+  align-items: end;
+  margin-bottom: 30px;
+}
+
+.playground-layout {
+  display: grid;
+  grid-template-columns: minmax(520px, 0.9fr) minmax(580px, 1.1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.sandbox-column,
+.result-column {
+  min-width: 0;
+}
+
+.history-card {
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: var(--sql-radius-lg);
+  box-shadow: var(--sql-tight-shadow);
+}
+</style>
