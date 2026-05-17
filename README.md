@@ -1,346 +1,172 @@
-# SQL Mother AI - AI 辅助的闯关式 SQL 自学网
+# SQL Mother AI
 
-> 基于 SQL 之母开发，加入 AI 辅助学习能力的闯关式 SQL 自学网
->
-> 原项目：[liyupi/sql-mother](https://github.com/liyupi/sql-mother)
+AI 辅助的闯关式 SQL 自学平台。项目把 SQL 学习拆成关卡、业务副本、自由练习和 AI 测验四个场景，让学习者可以在浏览器里阅读教程、编写 SQL、运行校验、复盘反馈，并用 AI 生成题目继续练习。
 
+本项目基于 [liyupi/sql-mother](https://github.com/liyupi/sql-mother) 二次开发，感谢原作者 [程序员鱼皮](https://github.com/liyupi) 开源的基础项目。当前仓库不是原项目的官方版本，而是在原有闯关式 SQL 学习体验上加入 AI 辅助、测验服务和新的学习界面。
 
+## 项目截图
 
-## 项目说明
+### 学习工作台
 
-本项目基于 [liyupi/sql-mother](https://github.com/liyupi/sql-mother) 进行二次开发，感谢原作者 [程序员鱼皮](https://github.com/liyupi) 开源的 SQL 学习项目。
+教程、SQL 编辑器、运行结果在同一屏完成闭环，适合边读边练。
 
-在原项目闯关式 SQL 自学体验的基础上，`sql-mother-ai` 增加了 AI 辅助学习能力，帮助用户在刷题过程中理解题目、分析 SQL 思路、获得练习反馈，并通过 AI 测验进一步巩固 SQL 知识。
+![学习工作台](./doc/screenshots/learn.png)
 
-原项目介绍如下：
+### 关卡地图
 
+主线关卡按 SQL 能力路线组织，自定义关卡以业务副本形式展示。
 
+![关卡地图](./doc/screenshots/levels.png)
 
-在线体验：http://sqlmother.yupi.icu
+### AI 测验
 
-视频演示：https://www.bilibili.com/video/BV1pV4y1i7LW
+根据当前关卡或已通关范围生成测验，支持题目数量选择和 Mock 模式验证。
 
+![AI 测验](./doc/screenshots/quiz.png)
 
+### 自由查询沙盒
 
-## 项目介绍
+脱离关卡限制自由执行 SQL，并保留执行历史与结果。
 
-一个完全免费的闯关式 SQL 自学教程网站，结合鱼皮自己的 SQL 学习实践经验，编写了 30 多个关卡，用户可以在线提交 SQL 代码做题闯关，目标是从 0 到 1 地带大家掌握常用的 SQL 语法。
+![自由查询沙盒](./doc/screenshots/playground.png)
 
-此外，网站支持自由选择关卡、自定义关卡、SQL 在线练习广场等功能。
+## 核心能力
 
-![](./doc/index.png)
+- 闯关式 SQL 学习：内置主线关卡和自定义业务关卡，覆盖查询、条件、排序、聚合、连接等常用 SQL 训练。
+- 浏览器内 SQL 执行：基于 `sql.js` 在前端执行 SQLite 语句，不需要本地安装数据库。
+- 自动判题：执行用户 SQL 和参考 SQL，对比字段与结果集，正确后记录通关进度。
+- AI 学习搭子：浮动 AI 面板会读取当前关卡上下文，辅助解释题目、分析思路和回答 SQL 问题。
+- AI 配置中心：支持 OpenAI 兼容接口、Anthropic 接口和自定义 Provider，可配置 Base URL、接口路径、模型名和 API Key。
+- AI 测验服务：Node 本地服务逐题生成 SQL 测验，支持当前关卡和已通关关卡范围。
+- 自由练习场：提供轻量 SQL 沙盒，可自由输入 SQL、查看结果和执行历史。
+- 学习进度持久化：通过 Pinia 和本地存储记录当前关卡、已通关关卡和 AI 配置状态。
 
+## 本地运行
 
+环境要求：
 
-### 为什么做这样一个网站？
+- Node.js 18 或更高版本
+- npm
 
-首先，SQL 知识极为重要，几乎是程序员、产品经理、数据分析同学的必备技能。
+安装依赖：
 
-对于 SQL 的学习，比起看教程，更适合通过实战来入门。网上虽然也有类似的 SQL 自学网，但是要么收费、要么不够体系化。
-
-所以鱼皮决定自己动手，搞一个开源的 SQL 学习网，一方面希望能够帮助大家更轻松地入门 SQL；另一方面，也希望项目代码也能给大家一些启发，让更多同学有机会参与进来成为贡献者，一起做好一个项目！
-
-
-
-## 20 秒学会使用
-
-1）直接进入主页，左侧是教程和题目区域，请先完整阅读
-
-2）在右上区域编写 SQL 代码做题，点击运行提交结果
-
-3）可以通过右下的题目助手区域帮助自己做题
-
-4）执行结果正确后，可以进入下一关
-
-![SQL 之母使用教程](./doc/tutorial.png)
-
-你也可以自由选择关卡来挑战，所有关卡都没有任何限制，不一定非要按顺序做题：
-
-![选择关卡](./doc/levels.png)
-
-
-
-
-## 1 分钟本地启动
-
-由于项目采用纯前端实现，本地启动项目非常简单！
-
-> 在线访问人数较多，可能会卡顿，所以更推荐大家自己在本地使用~
-
-1）下载本项目代码
-
-2）进入项目根目录，执行 `npm install` 安装项目依赖
-
-3）执行 `npm run dev` 本地启动即可
-
-
-
-## 功能和特性
-
-- 展示教程题目文档（Markdown 格式）
-- 在线做题
-  - 比对结果
-  - 题目助手
-    - 展示执行结果
-    - 查看提示
-    - 查看建表语句
-    - 查看答案
-- 关卡设置
-  - 自由选择关卡
-  - 主线关卡 - 支持上一关 / 下一关
-  - 自定义关卡
-- SQL 广场（自由输入 SQL）
-
-
-
-![SQL 广场](./doc/sql-playground.png)
-
-
-
-## 技术选型
-
-本项目采用纯前端实现，不需要任何后端的前置知识~
-
-> Q：为什么采用纯前端实现？
->
-> A：减少攻击风险 + 省钱 + 新的学习尝试
-
-
-
-- 主框架：Vue 3
-- 组件库：ant-design-vue
-- Markdown 展示组件：bytemd + github-markdown-css 主题
-- 代码编辑器：monaco-editor
-- SQL 执行：sql.js
-- SQL 代码格式化：sql-formatter
-- 全局状态管理：pinia + pinia-plugin-persistedstate
-- 前端工程化：typescript + eslint + prettier
-- 工具库：lodash
-
-
-
-## 核心设计
-
-### 1、界面模块化
-
-采用模块化的开发思想，把做题页面（主页）拆分为题目浏览区、SQL 编码区、题目结果区，每个区都是一个独立的 Vue 组件文件，实现了逻辑的隔离和组件的复用（比如 SQL 编码区同样可以复用到 SQL 练习广场页面）。
-
-- 题目浏览区（QuestionBoard）：展示题目 Markdown 文档
-- SQL 编码区（SqlEditor）：封装了代码编辑器、运行 / 格式化 / 重置按钮
-- 题目结果区（SqlResult）：封装了题目执行结果的展示
-
-然后在 `IndexPage.vue` 中就可以引入这些组件，并且传递关卡信息、运行结果等数据给组件，组装成一个完整的页面。
-
-
-
-### 2、关卡设计
-
-虽然没有后端数据库，但是仍应该把所有关卡的数据统一进行管理，所以定义了 `levels` 目录，统一存放关卡相关数据。
-
-首先将关卡分为了两类，主线关卡（教程）和自定义关卡（便于扩展），分别在 `mainLevels.ts` 和 `customLevels.ts` 文件中进行管理。
-
-每个关卡都是一个单独的目录，实现了关卡之间的隔离。
-
-![每个关卡独立目录](./doc/customLevel.png)
-
-由于每个关卡的题目教程文章可能非常长，直接写在 ts 文件中不利于阅读和管理，所以这里的策略是把所有文章写在 `.md` Markdown 文件中，在关卡定义文件 `index.ts` 中读取 `.md` 文件。
-
-示例代码如下，每个关卡的信息独立定义、相互隔离：
-
-```ts
-import md from "./README.md?raw";
-import sql from "./createTable.sql?raw";
-
-export default {
-  key: "level1",
-  title: "基础语法 - 查询 - 全表查询",
-  initSQL: sql,
-  content: md,
-  defaultSQL: "select * from student",
-  answer: "select * from student",
-  hint: "请仔细查看本关给出的示例",
-  type: "main",
-} as LevelType;
+```bash
+npm install
 ```
 
+启动完整开发环境：
 
-
-### 3、纯前端 SQL 执行
-
-纯前端是怎么操作数据库、执行 SQL 的呢？有前端经验的同学会本能地想到 `webassembly` 技术。
-
-没错，通过 `webassembly` 技术，我们可以在浏览器中执行 JS 之外的语言（比如 C++）。但是没必要自己去实现 SQL 执行逻辑了，站在巨人的肩膀上，直接使用开源的 `sql.js` 库，就可以在前端执行自己的 SQL 操作了。
-
-核心代码在 `src/core/sqlExecutor.ts` 中，定义了初始化 DB 和执行 SQL 两个函数，很简单：
-
-```ts
-import initSqlJs, { Database, SqlJsStatic } from "sql.js";
-
-/**
- * SQL 执行器
- *
- * @author coder_yupi https://github.com/liyupi
- */
-let SQL: SqlJsStatic;
-
-/**
- * 获取初始化 DB
- * @param initSql
- */
-export const initDB = async (initSql?: string) => {
-  if (!SQL) {
-    SQL = await initSqlJs({
-      // Required to load the wasm binary asynchronously
-      locateFile: () =>
-        "https://cdn.bootcdn.net/ajax/libs/sql.js/1.7.0/sql-wasm.wasm",
-    });
-  }
-  // Create a database
-  const db = new SQL.Database();
-  if (initSql) {
-    // Execute a single SQL string that contains multiple statements
-    db.run(initSql); // Run the query without returning anything
-  }
-  return db;
-};
-
-/**
- * 执行 SQL
- * @param db
- * @param sql
- */
-export const runSQL = (db: Database, sql: string) => {
-  return db.exec(sql);
-};
-
+```bash
+npm run dev
 ```
 
-在关卡加载时，会先执行关卡对应的初始化 SQL 语句完成建表和导入示例数据，然后用户就可以编写 SQL 查询表中的数据了。
+该命令会同时启动：
 
+- Vite 前端服务
+- AI 测验 Node 服务
 
+如果只需要前端页面：
 
-### 4、判题机制
+```bash
+npm run dev:client
+```
 
-和判题相关的代码全部集中定义在 `src/core/result.ts` 文件中，包括定义了几种执行状态，以及判断结果是否正确的函数。
+如果需要单独启动 AI 测验服务：
 
-如何判断用户的 SQL 语句是否正确呢？
+```bash
+npm run dev:quiz-server
+```
 
-不是直接去对比用户的输入语句和我们预设的答案是否一致（那样太死板了），而是依次执行以下 3 个操作：
+构建生产包：
 
-1. 分别提交用户的输入语句和答案语句，得到两份结果表
-2. 判断两个结果表输出的列名是否一致（名称和顺序都要一致）
-3. 判断两个结果表输出的数据是否一致
+```bash
+npm run build
+```
 
-这里作者用了个 trick 方式来对比数据，直接把两份结果集转为 JSON 格式，对比 JSON 字符串是否一致即可，而不是多重 for 循环。
+## AI 配置
 
+首次进入项目时，点击右下角 `AI` 浮动按钮或配置弹窗，填写模型服务信息。
 
+支持的接口类型：
 
-## 目录结构
+- OpenAI 兼容接口，例如 DeepSeek、OpenAI、通义千问兼容网关、本地兼容服务等
+- Anthropic 接口
+- 自定义 Provider，可填写自定义接口路径
 
-- public：公共静态资源
-- doc：文档相关资源
-- src
-  - assets：静态资源
-  - components：组件
-    - CodeEditor.vue：代码编辑器
-    - MdViewer.vue：Markdown 浏览
-    - QuestionBoard.vue：题目面板（教程区）
-    - SqlEditor.vue：SQL 编辑器（练习区）
-    - SqlResult.vue：SQL 执行结果（结果区）
-    - SqlResultTable.vue：SQL 结果表格
-  - configs：配置
-    - routes：路由
-  - core：核心
-    - sqlExecutor.ts：SQL 执行引擎
-    - result.ts：执行结果相关变量和函数
-    - globalStore.ts：全局状态管理
-  - levels：关卡
-    - custom：自定义关卡
-    - main：主线关卡
-      - level1：每个关卡都是一个单独的目录
-        - createTable.sql：关卡依赖的建表语句
-        - index.ts：关卡的定义
-        - README.md：关卡教程
-    - index.ts：定义了关卡相关变量和函数
-    - level.d.ts：关卡类型定义
-    - mainLevels：主线关卡列表
-    - customLevels：自定义关卡列表
-  - pages：页面
-    - IndexPage.vue：主页
-    - LevelsPage.vue：关卡页面
-    - PlaygroundPage.vue：广场页面
-  - App.vue：主页
-  - main.ts：Vue 主文件
-  - style.css：全局样式文件
-  - vite-env.d.ts：环境定义
-- .eslintrc.js：代码规范
-- .gitignore：提交忽略文件
-- index.html：静态主页
-- package.json：项目管理
-- tsconfig.json：TS 配置
-- vite.config.ts：打包工具配置
+配置保存到项目根目录的 `local-ai-config.json`，该文件已加入 `.gitignore`，不会提交到仓库。
 
+调试 AI 测验页面时，可以使用 Mock 模式，不请求真实模型：
 
+```bash
+AI_QUIZ_MOCK=1 npm run dev
+```
 
-## 贡献指南
+如默认端口被占用，可指定测验服务端口：
 
-欢迎各路好汉参与贡献，利人利己~
+```bash
+AI_QUIZ_MOCK=1 AI_QUIZ_PORT=6174 npm run dev
+```
 
-目前有几种推荐的贡献方式：
+## 技术栈
 
+- Vue 3
+- Vue Router
+- TypeScript
+- Vite
+- ant-design-vue
+- Pinia + pinia-plugin-persistedstate
+- monaco-editor
+- sql.js
+- sql-formatter
+- bytemd + github-markdown-css
+- markdown-it
+- Node.js HTTP 服务
+- Server-Sent Events
 
+## 项目结构
 
-### 1、贡献关卡
+```text
+.
+├── doc/screenshots              # README 页面截图
+├── public                       # 静态资源和 sql.js wasm
+├── scripts/dev.mjs              # 同时启动前端和测验服务
+├── server/quiz-sse-server.mjs   # AI 测验与配置服务
+├── src
+│   ├── components               # 通用组件、SQL 编辑器、AI 面板和配置弹窗
+│   ├── composables/useAI.ts     # AI 请求、流式响应和上下文构造
+│   ├── configs/routes.ts        # 页面路由
+│   ├── core                     # SQL 执行、判题和全局状态
+│   ├── levels                   # 主线关卡和自定义业务关卡
+│   └── pages                    # 学习、关卡、测验、练习场页面
+├── vite.config.ts               # Vite 配置与开发期 AI 代理
+└── package.json
+```
 
-在贡献关卡前，请确保你已经理解了本项目加载关卡的方式。
+## 页面说明
 
-为保证教程的连贯性，更推荐贡献 `自定义关卡` 而不是主线关卡，更容易被合并。
+- `/#/learn`：学习工作台，展示关卡教程、SQL 编辑器和执行结果。
+- `/#/levels`：关卡地图，按主线任务和业务副本选择练习内容。
+- `/#/quiz`：AI 测验，根据当前学习进度生成 SQL 题目。
+- `/#/playground`：自由查询沙盒，用于独立实验 SQL。
 
-贡献自定义关卡的步骤：
+## 开发说明
 
-1）复制 `src/levels/custom/自定义关卡模板` ，将目录名改为自己的关卡中文名
+新增关卡时，优先放入 `src/levels/custom`，让它成为一个独立业务副本。每个关卡目录通常包含：
 
-2）修改模板中的 `createTable.sql` 建表语句，导入默认数据
+- `README.md`：题目说明和教程内容
+- `createTable.sql`：初始化表结构和数据
+- `index.ts`：关卡标题、默认 SQL、参考答案、提示和难度配置
 
-3）修改模板中的 `index.ts` 文件，设置关卡的中英文名、默认 SQL、答案 SQL、提示等
+AI 相关能力分为两层：
 
-4）修改模板中的 `README.md` 文件，更改标题和题目内容，需要给出表结构信息、并且尽量把题目表达清楚（比如必须按照某个顺序输出）
+- 前端通过 `src/composables/useAI.ts` 构造当前关卡上下文，并调用本地接口。
+- 本地 Node 服务负责保存配置、转发模型请求、生成测验题，并通过 SSE 推送题目生成进度。
 
-5）在 `customLevels.ts` 文件中引入自定义的关卡。
+## 项目来源
 
-> 注意，本项目仅支持 SQLite 语法（基本上是通用的 SQL）！不要使用太花里胡哨的函数！
+本仓库基于 [liyupi/sql-mother](https://github.com/liyupi/sql-mother) 二次开发。原项目提供了 SQL 闯关学习的核心思路、关卡组织方式和前端 SQL 执行基础。本项目在此基础上重做了界面体验，并增加 AI 配置、AI 问答、AI 测验、学习进度和本地服务能力。
 
+如需了解原始项目，请访问：
 
-
-![自定义关卡](./doc/customLevel.png)
-
-
-
-### 2、完善关卡
-
-比如修复关卡的错误、优化关卡的文案使其更易于理解或增加更多干货、调整关卡的难度等。
-
-
-
-### 3、项目扩展
-
-本项目仅为鱼皮一人开发，时间和精力有限，很多地方没有做到完善，欢迎大家给项目进行扩展，打造属于自己的 SQL 之子、SQL 之孙、SQL 之曾孙系列产品。。。
-
-一些可能的扩展思路：
-
-1. 点击 “提交” 题目后，自动展开执行结果区域
-2. 过关后，给出更友好的过关提示，可以更方便地到达下一关
-3. 支持 SQL 一键格式化
-4. 优化关卡加载机制，按需加载
-5. 给项目增加一个后端，用数据库来存放关卡数据，并且支持在线提交 / 审核关卡
-6. 增加过关排行榜
-
-感谢阅读，也欢迎加入 [作者的编程学习圈](https://yupi.icu)，学习更多原创项目~
-
-## 感谢赞助
-
-本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助
-
-[亚洲最佳CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/zh?from=github)
-
-![image](https://github.com/user-attachments/assets/eeb52237-4520-4a97-8f3d-6cb901e2106a)
+- 原项目仓库：[liyupi/sql-mother](https://github.com/liyupi/sql-mother)
+- 原作者主页：[程序员鱼皮](https://github.com/liyupi)
