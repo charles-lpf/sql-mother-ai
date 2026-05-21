@@ -20,7 +20,12 @@
           <a-menu-item key="/quiz">测验</a-menu-item>
           <a-menu-item key="/playground">练习场</a-menu-item>
         </a-menu>
-        <div class="progress-pill">
+        <button
+          type="button"
+          class="progress-pill"
+          title="回到当前学习关卡"
+          @click="goCurrentLevel"
+        >
           <span
             class="progress-ring"
             :style="{ background: `conic-gradient(var(--sql-green-bright) 0 ${progressPercent}%, rgba(29, 143, 114, 0.16) ${progressPercent}% 100%)` }"
@@ -31,7 +36,7 @@
             <strong>闯关进度 {{ completedCount }} / {{ totalLevelCount }}</strong>
             <span>当前：{{ currentLevelTitle }}</span>
           </span>
-        </div>
+        </button>
       </div>
     </header>
     <div class="content">
@@ -89,6 +94,12 @@ const showAIConfig = () => {
 const showAIQuiz = () => {
   router.push({
     path: "/quiz",
+  });
+};
+
+const goCurrentLevel = () => {
+  router.push({
+    path: `/learn/${globalStore.currentLevelKey}`,
   });
 };
 
@@ -219,6 +230,23 @@ const doClickMenu = ({ key }: any) => {
   border: 1px solid rgba(29, 143, 114, 0.28);
   border-radius: 999px;
   background: rgba(255, 250, 240, 0.72);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.progress-pill:hover {
+  border-color: rgba(29, 143, 114, 0.44);
+  box-shadow: 0 10px 24px rgba(16, 38, 31, 0.1);
+  transform: translateY(-1px);
+}
+
+.progress-pill:focus-visible {
+  outline: 3px solid rgba(29, 143, 114, 0.22);
+  outline-offset: 3px;
 }
 
 .progress-ring {

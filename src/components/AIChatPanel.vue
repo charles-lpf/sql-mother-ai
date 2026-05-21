@@ -2,7 +2,7 @@
   <div
     ref="panelRef"
     class="ai-chat-panel"
-    :class="{ 'is-collapsed': isCollapsed, 'is-dragging': isDragging }"
+    :class="{ 'is-collapsed': isCollapsed, 'is-dragging': isDragging, 'is-resizing': isResizing }"
     :style="panelStyle"
   >
     <!-- 收起/展开按钮 -->
@@ -104,6 +104,14 @@
         </a-button>
       </div>
     </div>
+
+    <div
+      v-for="handle in resizeHandles"
+      v-show="!isCollapsed"
+      :key="handle.direction"
+      :class="['resize-handle', `resize-handle-${handle.direction}`]"
+      @pointerdown.stop.prevent="startResize($event, handle.direction)"
+    ></div>
   </div>
 </template>
 
@@ -120,6 +128,8 @@ interface Message {
   content: string;
 }
 
+type ResizeDirection = 'n' | 'e' | 's' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
+
 const emit = defineEmits<{
   (e: 'open-quiz'): void;
   (e: 'open-config'): void;
@@ -130,6 +140,11 @@ const { aiConfig, currentLevel, completedLevels } = storeToRefs(globalStore);
 const { chatStream, buildContextPrompt, isValidAIConfig } = useAI();
 
 const md = new MarkdownIt();
+
+const COLLAPSED_SIZE = 68;
+const DEFAULT_PANEL_WIDTH = 360;
+const DEFAULT_PANEL_HEIGHT = 590;
+const PANEL_MARGIN = 18;
 
 const isCollapsed = ref(true);
 const panelRef = ref<HTMLElement | null>(null);
@@ -144,11 +159,26 @@ const isLoading = ref(false);
 const messageListRef = ref<HTMLElement | null>(null);
 const isAIConfigured = computed(() => isValidAIConfig(aiConfig.value));
 const isDragging = ref(false);
+const isResizing = ref(false);
 const suppressNextClick = ref(false);
 const panelPosition = ref({
   x: 0,
   y: 0,
 });
+const panelSize = ref({
+  width: DEFAULT_PANEL_WIDTH,
+  height: DEFAULT_PANEL_HEIGHT,
+});
+const resizeHandles: Array<{ direction: ResizeDirection }> = [
+  { direction: 'n' },
+  { direction: 'e' },
+  { direction: 's' },
+  { direction: 'w' },
+  { direction: 'ne' },
+  { direction: 'nw' },
+  { direction: 'se' },
+  { direction: 'sw' },
+];
 const dragState = ref({
   pointerId: 0,
   startX: 0,
@@ -156,41 +186,70 @@ const dragState = ref({
   originX: 0,
   originY: 0,
 });
+const resizeState = ref({
+  pointerId: 0,
+  direction: 'se' as ResizeDirection,
+  startX: 0,
+  startY: 0,
+  originX: 0,
+  originY: 0,
+  originWidth: DEFAULT_PANEL_WIDTH,
+  originHeight: DEFAULT_PANEL_HEIGHT,
+});
 
 const panelStyle = computed(() => ({
   left: `${panelPosition.value.x}px`,
   top: `${panelPosition.value.y}px`,
+  width: `${isCollapsed.value ? COLLAPSED_SIZE : panelSize.value.width}px`,
+  height: `${isCollapsed.value ? COLLAPSED_SIZE : panelSize.value.height}px`,
 }));
 
 const getPanelSize = () => {
   if (isCollapsed.value) {
     return {
-      width: 68,
-      height: 68,
+      width: COLLAPSED_SIZE,
+      height: COLLAPSED_SIZE,
     };
   }
-  const rect = panelRef.value?.getBoundingClientRect();
   return {
-    width: rect?.width || 360,
-    height: rect?.height || 590,
+    width: panelSize.value.width,
+    height: panelSize.value.height,
   };
+};
+
+const clampValue = (value: number, min: number, max: number) => {
+  return Math.min(Math.max(value, min), Math.max(min, max));
 };
 
 const clampPosition = (x: number, y: number) => {
   const { width, height } = getPanelSize();
-  const margin = 18;
   return {
-    x: Math.min(Math.max(margin, x), window.innerWidth - width - margin),
-    y: Math.min(Math.max(margin, y), window.innerHeight - height - margin),
+    x: clampValue(x, PANEL_MARGIN, window.innerWidth - width - PANEL_MARGIN),
+    y: clampValue(y, PANEL_MARGIN, window.innerHeight - height - PANEL_MARGIN),
   };
 };
 
 const setDefaultPosition = () => {
   const defaultPosition = {
-    x: window.innerWidth - 68 - 28,
-    y: window.innerHeight - 68 - 132,
+    x: 28,
+    y: (window.innerHeight - COLLAPSED_SIZE) / 2,
   };
   panelPosition.value = clampPosition(defaultPosition.x, defaultPosition.y);
+};
+
+const resetPanelSize = () => {
+  panelSize.value = {
+    width: DEFAULT_PANEL_WIDTH,
+    height: DEFAULT_PANEL_HEIGHT,
+  };
+};
+
+const clampPanelToViewport = () => {
+  panelSize.value = {
+    width: clampValue(panelSize.value.width, DEFAULT_PANEL_WIDTH, window.innerWidth - PANEL_MARGIN * 2),
+    height: clampValue(panelSize.value.height, DEFAULT_PANEL_HEIGHT, window.innerHeight - PANEL_MARGIN * 2),
+  };
+  panelPosition.value = clampPosition(panelPosition.value.x, panelPosition.value.y);
 };
 
 // 渲染 Markdown
@@ -198,12 +257,32 @@ const renderMarkdown = (content: string) => {
   return md.render(content);
 };
 
-// 切换面板
-const togglePanel = () => {
-  isCollapsed.value = !isCollapsed.value;
+const openPanel = () => {
+  resetPanelSize();
+  isCollapsed.value = false;
+  panelPosition.value = clampPosition(
+    panelPosition.value.x,
+    (window.innerHeight - DEFAULT_PANEL_HEIGHT) / 2
+  );
   nextTick(() => {
     panelPosition.value = clampPosition(panelPosition.value.x, panelPosition.value.y);
   });
+};
+
+const closePanel = () => {
+  isCollapsed.value = true;
+  nextTick(() => {
+    panelPosition.value = clampPosition(panelPosition.value.x, panelPosition.value.y);
+  });
+};
+
+// 切换面板
+const togglePanel = () => {
+  if (isCollapsed.value) {
+    openPanel();
+    return;
+  }
+  closePanel();
 };
 
 const handleToggleClick = () => {
@@ -216,10 +295,11 @@ const handleToggleClick = () => {
 
 const startDrag = (event: PointerEvent) => {
   const target = event.target as HTMLElement;
-  if (target.closest('.header-actions, button, textarea, input')) {
+  if (target.closest('.resize-handle, .header-actions, button, textarea, input')) {
     return;
   }
   isDragging.value = true;
+  isResizing.value = false;
   suppressNextClick.value = false;
   dragState.value = {
     pointerId: event.pointerId,
@@ -231,7 +311,85 @@ const startDrag = (event: PointerEvent) => {
   panelRef.value?.setPointerCapture?.(event.pointerId);
 };
 
+const startResize = (event: PointerEvent, direction: ResizeDirection) => {
+  if (isCollapsed.value) {
+    return;
+  }
+  isResizing.value = true;
+  isDragging.value = false;
+  suppressNextClick.value = true;
+  resizeState.value = {
+    pointerId: event.pointerId,
+    direction,
+    startX: event.clientX,
+    startY: event.clientY,
+    originX: panelPosition.value.x,
+    originY: panelPosition.value.y,
+    originWidth: panelSize.value.width,
+    originHeight: panelSize.value.height,
+  };
+  panelRef.value?.setPointerCapture?.(event.pointerId);
+};
+
+const applyResize = (event: PointerEvent) => {
+  const state = resizeState.value;
+  const dx = event.clientX - state.startX;
+  const dy = event.clientY - state.startY;
+  const direction = state.direction;
+  let nextX = state.originX;
+  let nextY = state.originY;
+  let nextWidth = state.originWidth;
+  let nextHeight = state.originHeight;
+
+  if (direction.includes('e')) {
+    nextWidth = clampValue(
+      state.originWidth + dx,
+      DEFAULT_PANEL_WIDTH,
+      window.innerWidth - state.originX - PANEL_MARGIN
+    );
+  }
+
+  if (direction.includes('w')) {
+    nextWidth = clampValue(
+      state.originWidth - dx,
+      DEFAULT_PANEL_WIDTH,
+      state.originX + state.originWidth - PANEL_MARGIN
+    );
+    nextX = state.originX + state.originWidth - nextWidth;
+  }
+
+  if (direction.includes('s')) {
+    nextHeight = clampValue(
+      state.originHeight + dy,
+      DEFAULT_PANEL_HEIGHT,
+      window.innerHeight - state.originY - PANEL_MARGIN
+    );
+  }
+
+  if (direction.includes('n')) {
+    nextHeight = clampValue(
+      state.originHeight - dy,
+      DEFAULT_PANEL_HEIGHT,
+      state.originY + state.originHeight - PANEL_MARGIN
+    );
+    nextY = state.originY + state.originHeight - nextHeight;
+  }
+
+  panelSize.value = {
+    width: nextWidth,
+    height: nextHeight,
+  };
+  panelPosition.value = {
+    x: nextX,
+    y: nextY,
+  };
+};
+
 const onPointerMove = (event: PointerEvent) => {
+  if (isResizing.value && event.pointerId === resizeState.value.pointerId) {
+    applyResize(event);
+    return;
+  }
   if (!isDragging.value || event.pointerId !== dragState.value.pointerId) {
     return;
   }
@@ -247,6 +405,14 @@ const onPointerMove = (event: PointerEvent) => {
 };
 
 const stopDrag = (event: PointerEvent) => {
+  if (isResizing.value && event.pointerId === resizeState.value.pointerId) {
+    isResizing.value = false;
+    panelRef.value?.releasePointerCapture?.(event.pointerId);
+    window.setTimeout(() => {
+      suppressNextClick.value = false;
+    }, 0);
+    return;
+  }
   if (!isDragging.value || event.pointerId !== dragState.value.pointerId) {
     return;
   }
@@ -282,6 +448,9 @@ const clearInput = (event?: Event) => {
 };
 
 const handleEnterSend = (event: KeyboardEvent) => {
+  if (event.shiftKey) {
+    return;
+  }
   event.preventDefault();
   handleSend(event);
 };
@@ -378,21 +547,19 @@ onMounted(() => {
   setDefaultPosition();
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', stopDrag);
-  window.addEventListener('resize', setDefaultPosition);
+  window.addEventListener('resize', clampPanelToViewport);
 });
 
 onUnmounted(() => {
   window.removeEventListener('pointermove', onPointerMove);
   window.removeEventListener('pointerup', stopDrag);
-  window.removeEventListener('resize', setDefaultPosition);
+  window.removeEventListener('resize', clampPanelToViewport);
 });
 </script>
 
 <style scoped>
 .ai-chat-panel {
   position: fixed;
-  width: 360px;
-  height: min(590px, calc(100vh - 36px));
   border: 1px solid rgba(14, 111, 89, 0.22);
   background: rgba(255, 250, 240, 0.94);
   border-radius: 32px;
@@ -410,6 +577,11 @@ onUnmounted(() => {
 
 .ai-chat-panel.is-dragging {
   box-shadow: 0 26px 70px rgba(34, 38, 31, 0.3);
+  transition: none;
+}
+
+.ai-chat-panel.is-resizing {
+  box-shadow: 0 22px 58px rgba(34, 38, 31, 0.26);
   transition: none;
 }
 
@@ -559,9 +731,9 @@ onUnmounted(() => {
 
 .message-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px;
-  max-height: 300px;
 }
 
 .message-item {
@@ -707,5 +879,75 @@ onUnmounted(() => {
 
 .input-area :deep(.ant-btn-primary) {
   width: 100%;
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+}
+
+.resize-handle-n,
+.resize-handle-s {
+  left: 14px;
+  right: 14px;
+  height: 10px;
+  cursor: ns-resize;
+}
+
+.resize-handle-n {
+  top: 0;
+}
+
+.resize-handle-s {
+  bottom: 0;
+}
+
+.resize-handle-e,
+.resize-handle-w {
+  top: 14px;
+  bottom: 14px;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.resize-handle-e {
+  right: 0;
+}
+
+.resize-handle-w {
+  left: 0;
+}
+
+.resize-handle-ne,
+.resize-handle-nw,
+.resize-handle-se,
+.resize-handle-sw {
+  width: 16px;
+  height: 16px;
+}
+
+.resize-handle-ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.resize-handle-nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.resize-handle-sw {
+  left: 0;
+  bottom: 0;
+  cursor: nesw-resize;
 }
 </style>

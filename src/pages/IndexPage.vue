@@ -63,7 +63,8 @@
 import SqlEditor from "../components/SqlEditor.vue";
 import QuestionBoard from "../components/QuestionBoard.vue";
 import SqlResult from "../components/SqlResult.vue";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { QueryExecResult } from "sql.js";
 import { allLevels, getCurrentLevelNum, getLevelByKey } from "../levels";
 import { checkResult, RESULT_STATUS_ENUM } from "../core/result";
@@ -76,6 +77,7 @@ interface IndexPageProps {
 }
 
 const props = defineProps<IndexPageProps>();
+const router = useRouter();
 const globalStore = useGlobalStore();
 const { currentLevelKey } = storeToRefs(globalStore);
 
@@ -91,7 +93,9 @@ const totalLevels = allLevels.length;
 
 // 监听关卡变化时，保存进度
 watch(level, (newLevel) => {
-  globalStore.setCurrentLevel(newLevel.key);
+  if (props.levelKey && newLevel.key !== currentLevelKey.value) {
+    globalStore.setCurrentLevel(newLevel.key);
+  }
 }, { immediate: true });
 
 const result = ref<QueryExecResult[]>([]);
@@ -133,6 +137,30 @@ const onSubmit = (
     globalStore.markLevelCompleted(level.value.key);
   }
 };
+
+const getPersistedCurrentLevelKey = () => {
+  try {
+    const raw = window.localStorage.getItem("global");
+    if (!raw) {
+      return "";
+    }
+    const parsed = JSON.parse(raw) as { currentLevelKey?: string };
+    return typeof parsed.currentLevelKey === "string" ? parsed.currentLevelKey : "";
+  } catch {
+    return "";
+  }
+};
+
+onMounted(() => {
+  if (props.levelKey) {
+    return;
+  }
+  const persistedLevelKey = getPersistedCurrentLevelKey();
+  const targetLevelKey = persistedLevelKey || currentLevelKey.value;
+  if (targetLevelKey) {
+    router.replace(`/learn/${targetLevelKey}`);
+  }
+});
 
 </script>
 
