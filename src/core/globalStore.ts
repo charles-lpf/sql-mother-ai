@@ -16,7 +16,7 @@ export const defaultAIConfig: AIConfig = {
   provider: "openai-compatible",
   customProviderName: "",
   baseUrl: "",
-  apiPath: "/v1/chat/completions",
+  apiPath: "",
   apiKey: "",
   model: "",
 };
@@ -96,6 +96,10 @@ export const useGlobalStore = defineStore("global", {
         ...defaultAIConfig,
         ...config,
       };
+    },
+    // 清除 AI 配置，但保留学习进度等其他本地状态
+    clearAIConfig() {
+      this.aiConfig = { ...defaultAIConfig };
     },
     // 重置
     reset() {

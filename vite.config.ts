@@ -22,6 +22,17 @@ const normalizeApiPath = (value: string) => {
   return value.startsWith("/") ? value : `/${value}`;
 };
 
+const resolveAIEndpoint = (config: any) => {
+  const baseUrl = trimTrailingSlash(config.baseUrl);
+  if (config.provider === "anthropic") {
+    return `${baseUrl}/v1/messages`;
+  }
+  if (config.provider === "custom") {
+    return `${baseUrl}${normalizeApiPath(config.apiPath)}`;
+  }
+  return `${baseUrl}/chat/completions`;
+};
+
 class AIProxyError extends Error {
   statusCode: number;
   upstreamStatus?: number;
@@ -101,7 +112,8 @@ const fetchWithTimeout = async (
     if (error.name === "AbortError") {
       throw new Error("AI 请求超时，请稍后重试或减少题目数量");
     }
-    throw error;
+    const causeMessage = error.cause?.message || error.message || "未知网络错误";
+    throw new Error(`AI 网络连接失败：${causeMessage}（${url}）`);
   } finally {
     clearTimeout(timer);
   }
@@ -113,11 +125,7 @@ const requestAI = async ({
   timeout = 60000,
   maxTokens = 2048,
 }: any) => {
-  const baseUrl = trimTrailingSlash(config.baseUrl);
-  const endpoint =
-    config.provider === "anthropic"
-      ? `${baseUrl}/v1/messages`
-      : `${baseUrl}${normalizeApiPath(config.apiPath)}`;
+  const endpoint = resolveAIEndpoint(config);
   const isAnthropic = config.provider === "anthropic";
   const body = isAnthropic
     ? {
@@ -258,6 +266,14 @@ export default defineConfig({
                 `${JSON.stringify(config, null, 2)}\n`,
                 "utf-8"
               );
+              res.end(JSON.stringify({ success: true }));
+              return;
+            }
+
+            if (req.method === "DELETE") {
+              if (fs.existsSync(aiConfigFilePath)) {
+                fs.unlinkSync(aiConfigFilePath);
+              }
               res.end(JSON.stringify({ success: true }));
               return;
             }

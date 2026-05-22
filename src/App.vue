@@ -112,7 +112,8 @@ const loadAIConfig = async () => {
   try {
     const response = await fetch("/api/ai-config");
     if (!response.ok) {
-      aiConfigVisible.value = !globalStore.hasValidAIConfig;
+      globalStore.clearAIConfig();
+      aiConfigVisible.value = true;
       return;
     }
 
@@ -120,7 +121,8 @@ const loadAIConfig = async () => {
     globalStore.setAIConfig(config);
     aiConfigVisible.value = !globalStore.hasValidAIConfig;
   } catch (error) {
-    aiConfigVisible.value = !globalStore.hasValidAIConfig;
+    globalStore.clearAIConfig();
+    aiConfigVisible.value = true;
     if (!globalStore.hasValidAIConfig) {
       message.info("请先完成 AI 配置");
     }

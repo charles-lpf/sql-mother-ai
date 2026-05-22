@@ -846,6 +846,18 @@ onUnmounted(() => {
   color: rgba(24, 33, 30, 0.72);
 }
 
+.thinking-line :deep(.ant-spin-dot-item) {
+  background-color: var(--sql-green);
+}
+
+.thinking-line :deep(.ant-spin-dot-item:nth-child(2)) {
+  background-color: var(--sql-green-bright);
+}
+
+.thinking-line :deep(.ant-spin-dot-item:nth-child(3)) {
+  background-color: var(--sql-amber);
+}
+
 .typing-cursor {
   display: inline-block;
   width: 7px;

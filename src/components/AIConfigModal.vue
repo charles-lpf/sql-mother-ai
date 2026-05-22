@@ -7,6 +7,24 @@
     @cancel="handleCancel"
     :confirm-loading="saving"
   >
+    <template #footer>
+      <div class="modal-footer">
+        <a-button
+          class="switch-model-button"
+          :loading="switching"
+          @click="handleSwitchModel"
+        >
+          切换模型
+        </a-button>
+        <div class="modal-footer-actions">
+          <a-button @click="handleCancel">Cancel</a-button>
+          <a-button type="primary" :loading="saving" @click="handleSave">
+            OK
+          </a-button>
+        </div>
+      </div>
+    </template>
+
     <a-form :model="formState" layout="vertical">
       <a-form-item label="接口类型" required>
         <a-select v-model:value="formState.provider">
@@ -86,6 +104,7 @@ const { testConfig, isValidAIConfig } = useAI();
 const visible = ref(props.open);
 const saving = ref(false);
 const testing = ref(false);
+const switching = ref(false);
 
 const formState = ref<AIConfig>({ ...defaultAIConfig });
 
@@ -126,12 +145,12 @@ watch(visible, (newVal) => {
 watch(
   () => formState.value.provider,
   (provider) => {
-    if (provider === 'anthropic') {
-      formState.value.apiPath = '/v1/messages';
+    if (provider === 'custom' && !formState.value.apiPath) {
+      formState.value.apiPath = '/v1/chat/completions';
       return;
     }
-    if (!formState.value.apiPath || formState.value.apiPath === '/v1/messages') {
-      formState.value.apiPath = '/v1/chat/completions';
+    if (provider !== 'custom') {
+      formState.value.apiPath = '';
     }
   }
 );
@@ -141,9 +160,11 @@ const getSanitizedConfig = (): AIConfig => {
     provider: formState.value.provider,
     customProviderName: formState.value.customProviderName.trim(),
     baseUrl: formState.value.baseUrl.trim(),
-    apiPath: formState.value.apiPath.trim() || '/v1/chat/completions',
+    apiPath: formState.value.provider === 'custom'
+      ? formState.value.apiPath.trim() || '/v1/chat/completions'
+      : '',
     apiKey: formState.value.apiKey.trim(),
-    model: formState.value.model.trim(),
+    model: formState.value.model.trim().toLowerCase(),
   };
 };
 
@@ -198,7 +219,53 @@ const handleSave = async () => {
   }
 };
 
+const resetFormState = () => {
+  formState.value = { ...defaultAIConfig };
+};
+
+const handleSwitchModel = async () => {
+  switching.value = true;
+  try {
+    const response = await fetch('/api/ai-config', {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || '清除 AI 配置失败');
+    }
+
+    globalStore.clearAIConfig();
+    resetFormState();
+    message.success('已清除配置，请重新绑定 AI 模型');
+  } catch (error: any) {
+    message.error(error.message || '清除 AI 配置失败，请确认正在使用 npm run dev 启动项目');
+  } finally {
+    switching.value = false;
+  }
+};
+
 const handleCancel = () => {
   visible.value = false;
 };
 </script>
+
+<style scoped>
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.modal-footer-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switch-model-button {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.35);
+}
+</style>

@@ -67,6 +67,17 @@ const normalizeApiPath = (value) => {
   return value.startsWith("/") ? value : `/${value}`;
 };
 
+const resolveAIEndpoint = (config) => {
+  const baseUrl = trimTrailingSlash(config.baseUrl);
+  if (config.provider === "anthropic") {
+    return `${baseUrl}/v1/messages`;
+  }
+  if (config.provider === "custom") {
+    return `${baseUrl}${normalizeApiPath(config.apiPath)}`;
+  }
+  return `${baseUrl}/chat/completions`;
+};
+
 const parseResponseBody = async (response) => {
   const rawText = await response.text();
   if (!rawText) {
@@ -164,7 +175,11 @@ const fetchWithTimeout = async (url, options, timeout) => {
     if (error.name === "AbortError") {
       throw new ServiceError("AI 请求超时或已取消", { statusCode: 504 });
     }
-    throw error;
+    const causeMessage = error.cause?.message || error.message || "未知网络错误";
+    throw new ServiceError(`AI 网络连接失败：${causeMessage}`, {
+      statusCode: 502,
+      endpoint: url,
+    });
   } finally {
     clearTimeout(timer);
     externalSignal?.removeEventListener("abort", abortRequest);
@@ -172,11 +187,7 @@ const fetchWithTimeout = async (url, options, timeout) => {
 };
 
 const requestAI = async ({ config, messages, timeout = 30000, maxTokens = 900, signal }) => {
-  const baseUrl = trimTrailingSlash(config.baseUrl);
-  const endpoint =
-    config.provider === "anthropic"
-      ? `${baseUrl}/v1/messages`
-      : `${baseUrl}${normalizeApiPath(config.apiPath)}`;
+  const endpoint = resolveAIEndpoint(config);
   const isAnthropic = config.provider === "anthropic";
   const body = isAnthropic
     ? {
